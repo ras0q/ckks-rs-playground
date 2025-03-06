@@ -11,9 +11,9 @@ pub struct KeyGenerator<const N: usize> {
 }
 
 impl<const N: usize> KeyGenerator<N> {
-    pub fn new(limit: i64, p: i64, q0: i64, scale: i64) -> Self {
+    pub fn new(limit: u32, p: i64, q0: i64, scale: i64) -> Self {
         Self {
-            ql: (p ^ limit) * q0,
+            ql: (p.pow(limit)) * q0,
             scale,
         }
     }
@@ -58,7 +58,12 @@ impl<const N: usize> PublicKey<N> {
         Self { b, a }
     }
 
-    pub fn encrypt(&self, plaintext: Plaintext<N>) -> Ciphertext<N> {
+    pub fn encrypt(
+        &self,
+        plaintext: Plaintext<N>,
+        evaluation_key: EveluationKey<N>,
+        scale: i64,
+    ) -> Ciphertext<N> {
         let modulo = self.b.modulo;
         let v = Polynomial::new(rand_array(-1..2), modulo);
         let e0 = Polynomial::new(rand_array(-3..3), modulo);
@@ -67,14 +72,19 @@ impl<const N: usize> PublicKey<N> {
         let c0 = v * self.b + plaintext.m + e0;
         let c1 = v * self.a + e1;
 
-        Ciphertext { c0, c1 }
+        Ciphertext {
+            c0,
+            c1,
+            evaluation_key,
+            scale,
+        }
     }
 }
 
 #[derive(Debug, Clone, Copy)]
 pub struct EveluationKey<const N: usize> {
-    pub _b: Polynomial<i64, N>,
-    pub _a: Polynomial<i64, N>,
+    pub b: Polynomial<i64, N>,
+    pub a: Polynomial<i64, N>,
 }
 
 impl<const N: usize> EveluationKey<N> {
@@ -88,6 +98,6 @@ impl<const N: usize> EveluationKey<N> {
         let a = Polynomial::<i64, N>::new(rand_array(-100..100), modulo_scaled);
         let e = Polynomial::<i64, N>::new(rand_array(-3..3), modulo_scaled);
         let b = -a * s + e + (s * s) * scale;
-        Self { _b: b, _a: a }
+        Self { b, a }
     }
 }
