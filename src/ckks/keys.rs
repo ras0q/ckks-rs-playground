@@ -7,20 +7,23 @@ pub struct KeyGenerator<const N: usize> {
     // p: i64,
     // q0: i64,
     ql: i64,
+    scale: i64,
 }
 
 impl<const N: usize> KeyGenerator<N> {
-    pub fn new(limit: i64, p: i64, q0: i64) -> Self {
+    pub fn new(limit: i64, p: i64, q0: i64, scale: i64) -> Self {
         Self {
             ql: (p ^ limit) * q0,
+            scale,
         }
     }
 
-    pub fn generate_keys(&self) -> (PublicKey<N>, SecretKey<N>) {
+    pub fn generate_keys(&self) -> (PublicKey<N>, SecretKey<N>, EveluationKey<N>) {
         let secret_key = SecretKey::generate(self.ql);
         let public_key = PublicKey::generate(secret_key, self.ql);
+        let evaluation_key = EveluationKey::generate(secret_key, self.ql, self.scale);
 
-        (public_key, secret_key)
+        (public_key, secret_key, evaluation_key)
     }
 }
 
@@ -65,5 +68,26 @@ impl<const N: usize> PublicKey<N> {
         let c1 = v * self.a + e1;
 
         Ciphertext { c0, c1 }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct EveluationKey<const N: usize> {
+    pub _b: Polynomial<i64, N>,
+    pub _a: Polynomial<i64, N>,
+}
+
+impl<const N: usize> EveluationKey<N> {
+    pub fn generate(secret_key: SecretKey<N>, modulo: i64, scale: i64) -> Self {
+        let modulo_scaled = modulo * scale;
+
+        let s = Polynomial {
+            modulo: modulo_scaled,
+            ..secret_key.s
+        };
+        let a = Polynomial::<i64, N>::new(rand_array(-100..100), modulo_scaled);
+        let e = Polynomial::<i64, N>::new(rand_array(-3..3), modulo_scaled);
+        let b = -a * s + e + (s * s) * scale;
+        Self { _b: b, _a: a }
     }
 }

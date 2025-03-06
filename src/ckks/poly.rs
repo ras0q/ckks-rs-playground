@@ -112,3 +112,23 @@ where
         Self::new(new_coeffs, self.modulo)
     }
 }
+
+impl<T, const N: usize> Mul<T> for Polynomial<T, N>
+where
+    T: Copy
+        + Default
+        + From<i64>
+        + PartialOrd
+        + Sub<Output = T>
+        + Rem<Output = T>
+        + Add<Output = T>
+        + Mul<Output = T>,
+{
+    type Output = Self;
+
+    fn mul(self, rhs: T) -> Self::Output {
+        let new_coeffs: [T; N] = self.coeffs.map(|c| self.cmod(c * rhs));
+
+        Self::new(new_coeffs, self.modulo)
+    }
+}

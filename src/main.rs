@@ -11,8 +11,8 @@ fn main() {
     };
     println!("plaintext: {:?}", plaintext);
 
-    let key_generator = ckks::keys::KeyGenerator::new(100, 1000000007, 100);
-    let (public_key, secret_key) = key_generator.generate_keys();
+    let key_generator = ckks::keys::KeyGenerator::new(100, 1000000007, 100, 1000000007);
+    let (public_key, secret_key, _evaluation_key) = key_generator.generate_keys();
     println!("public key: {:?}", public_key);
     println!("secret key: {:?}", secret_key);
 
