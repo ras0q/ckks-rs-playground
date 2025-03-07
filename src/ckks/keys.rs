@@ -1,6 +1,8 @@
-use crate::{ckks::poly::Polynomial, ckks::random::rand_array};
-
-use super::ciphertext::{Ciphertext, Plaintext};
+use super::{
+    ciphertext::{Ciphertext, Plaintext},
+    poly::Polynomial,
+    random::rand_array,
+};
 
 pub struct KeyGenerator<const N: usize> {
     // limit: i64,
