@@ -1,11 +1,4 @@
-use rand::{Rng, rng};
-
 use super::{ciphertext::Ciphertext, plaintext::Plaintext, poly::Polynomial};
-
-pub fn rand_array<const N: usize>(range: std::ops::Range<i64>) -> [i64; N] {
-    let mut rng = rng();
-    std::array::from_fn(|_| rng.random_range(range.clone()))
-}
 
 pub struct KeyGenerator<const N: usize> {
     // limit: i64,
@@ -39,7 +32,7 @@ pub struct SecretKey<const N: usize> {
 
 impl<const N: usize> SecretKey<N> {
     pub fn generate(modulo: i64) -> Self {
-        let s = Polynomial::<i64, N>::new(rand_array(-1..2), modulo);
+        let s = Polynomial::<i64, N>::new_random(-1..2, modulo);
         Self { s }
     }
 
@@ -57,8 +50,8 @@ pub struct PublicKey<const N: usize> {
 
 impl<const N: usize> PublicKey<N> {
     pub fn generate(secret_key: SecretKey<N>, modulo: i64) -> Self {
-        let a = Polynomial::<i64, N>::new(rand_array(-100..100), modulo);
-        let e = Polynomial::<i64, N>::new(rand_array(-3..3), modulo);
+        let a = Polynomial::<i64, N>::new_random(-100..100, modulo);
+        let e = Polynomial::<i64, N>::new_random(-3..3, modulo);
         let b = -a * secret_key.s + e;
         Self { b, a }
     }
@@ -70,9 +63,9 @@ impl<const N: usize> PublicKey<N> {
         scale: i64,
     ) -> Ciphertext<N> {
         let modulo = self.b.modulo;
-        let v = Polynomial::new(rand_array(-1..2), modulo);
-        let e0 = Polynomial::new(rand_array(-3..3), modulo);
-        let e1 = Polynomial::new(rand_array(-3..3), modulo);
+        let v = Polynomial::new_random(-1..2, modulo);
+        let e0 = Polynomial::new_random(-3..3, modulo);
+        let e1 = Polynomial::new_random(-3..3, modulo);
 
         let c0 = v * self.b + plaintext.m + e0;
         let c1 = v * self.a + e1;
@@ -100,8 +93,8 @@ impl<const N: usize> EveluationKey<N> {
             modulo: modulo_scaled,
             ..secret_key.s
         };
-        let a = Polynomial::<i64, N>::new(rand_array(-100..100), modulo_scaled);
-        let e = Polynomial::<i64, N>::new(rand_array(-3..3), modulo_scaled);
+        let a = Polynomial::<i64, N>::new_random(-100..100, modulo_scaled);
+        let e = Polynomial::<i64, N>::new_random(-3..3, modulo_scaled);
         let b = -a * s + e + (s * s) * scale;
         Self { b, a }
     }

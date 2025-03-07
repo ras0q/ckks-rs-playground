@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul, Neg, Sub};
+use std::ops::{Add, Mul, Neg, Range, Sub};
 
 use num_traits::Num;
 
@@ -11,6 +11,15 @@ pub struct Polynomial<T, const N: usize> {
 
 impl<T, const N: usize> Polynomial<T, N> {
     pub fn new(coeffs: [T; N], modulo: i64) -> Self {
+        Self { coeffs, modulo }
+    }
+
+    pub fn new_random(range: Range<i64>, modulo: i64) -> Self
+    where
+        T: Copy + PartialOrd + Num + From<i64>,
+    {
+        let coeffs: [T; N] = std::array::from_fn(|_| T::from(rand::random_range(range.clone())));
+
         Self { coeffs, modulo }
     }
 
