@@ -1,4 +1,6 @@
-use std::ops::{Add, Mul, Neg, Rem, Sub};
+use std::ops::{Add, Mul, Neg, Sub};
+
+use num_traits::Num;
 
 #[derive(Debug, Clone, Copy)]
 // P(X) = coeffs[0] + coeffs[1]*X + ... + coeffs[N-1]*X^(N-1)
@@ -15,7 +17,7 @@ impl<T, const N: usize> Polynomial<T, N> {
     // [x/2, x/2)の範囲に収める
     fn cmod(&self, x: T) -> T
     where
-        T: Copy + From<i64> + PartialOrd + Sub<Output = T> + Rem<Output = T>,
+        T: Copy + PartialOrd + Num + From<i64>,
     {
         let modulo = T::from(self.modulo);
         let t = x % modulo;
@@ -28,27 +30,9 @@ impl<T, const N: usize> Polynomial<T, N> {
     }
 }
 
-impl<T, const N: usize> Default for Polynomial<T, N>
-where
-    T: Default,
-{
-    fn default() -> Self {
-        Self {
-            coeffs: core::array::from_fn(|_| T::default()),
-            modulo: 1000000007,
-        }
-    }
-}
-
 impl<T, const N: usize> Neg for Polynomial<T, N>
 where
-    T: Copy
-        + Default
-        + From<i64>
-        + PartialOrd
-        + Sub<Output = T>
-        + Rem<Output = T>
-        + Neg<Output = T>,
+    T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T>,
 {
     type Output = Self;
 
@@ -61,18 +45,12 @@ where
 
 impl<T, const N: usize> Add for Polynomial<T, N>
 where
-    T: Copy
-        + Default
-        + From<i64>
-        + PartialOrd
-        + Sub<Output = T>
-        + Rem<Output = T>
-        + Add<Output = T>,
+    T: Copy + PartialOrd + Num + From<i64>,
 {
     type Output = Self;
 
     fn add(self, rhs: Polynomial<T, N>) -> Self::Output {
-        let mut new_coeffs: [T; N] = [T::default(); N];
+        let mut new_coeffs: [T; N] = [T::zero(); N];
         for (i, (a, b)) in self.coeffs.iter().zip(rhs.coeffs.iter()).enumerate() {
             new_coeffs[i] = self.cmod(*a + *b);
         }
@@ -83,18 +61,12 @@ where
 
 impl<T, const N: usize> Sub for Polynomial<T, N>
 where
-    T: Copy
-        + Default
-        + From<i64>
-        + PartialOrd
-        + Sub<Output = T>
-        + Rem<Output = T>
-        + Add<Output = T>,
+    T: Copy + PartialOrd + Num + From<i64>,
 {
     type Output = Self;
 
     fn sub(self, rhs: Polynomial<T, N>) -> Self::Output {
-        let mut new_coeffs: [T; N] = [T::default(); N];
+        let mut new_coeffs: [T; N] = [T::zero(); N];
         for (i, (a, b)) in self.coeffs.iter().zip(rhs.coeffs.iter()).enumerate() {
             new_coeffs[i] = self.cmod(*a - *b);
         }
@@ -105,19 +77,12 @@ where
 
 impl<T, const N: usize> Mul for Polynomial<T, N>
 where
-    T: Copy
-        + Default
-        + From<i64>
-        + PartialOrd
-        + Sub<Output = T>
-        + Rem<Output = T>
-        + Add<Output = T>
-        + Mul<Output = T>,
+    T: Copy + PartialOrd + Num + From<i64>,
 {
     type Output = Self;
 
     fn mul(self, rhs: Polynomial<T, N>) -> Self::Output {
-        let mut product = vec![T::default(); 2 * N];
+        let mut product = vec![T::zero(); 2 * N];
 
         for (i, a) in self.coeffs.iter().enumerate() {
             for (j, b) in rhs.coeffs.iter().enumerate() {
@@ -126,7 +91,7 @@ where
         }
 
         // X^N + 1で割ってN-1次式にする
-        let mut new_coeffs: [T; N] = [T::default(); N];
+        let mut new_coeffs: [T; N] = [T::zero(); N];
         for i in 0..N {
             new_coeffs[i] = self.cmod(product[i] + product[i + N]);
         }
@@ -137,14 +102,7 @@ where
 
 impl<T, const N: usize> Mul<T> for Polynomial<T, N>
 where
-    T: Copy
-        + Default
-        + From<i64>
-        + PartialOrd
-        + Sub<Output = T>
-        + Rem<Output = T>
-        + Add<Output = T>
-        + Mul<Output = T>,
+    T: Copy + PartialOrd + Num + From<i64>,
 {
     type Output = Self;
 
