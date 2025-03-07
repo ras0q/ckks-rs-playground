@@ -1,8 +1,4 @@
-use super::{
-    ciphertext::{Ciphertext, Plaintext},
-    poly::Polynomial,
-    random::rand_array,
-};
+use super::{ciphertext::Ciphertext, plaintext::Plaintext, poly::Polynomial, random::rand_array};
 
 pub struct KeyGenerator<const N: usize> {
     // limit: i64,
@@ -42,7 +38,7 @@ impl<const N: usize> SecretKey<N> {
 
     pub fn decrypt(&self, ciphertext: Ciphertext<N>) -> Plaintext<N> {
         let m = ciphertext.c0 + ciphertext.c1 * self.s;
-        Plaintext { m }
+        Plaintext::new(m)
     }
 }
 

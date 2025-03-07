@@ -3,27 +3,6 @@ use std::ops::{Add, Mul};
 use super::{keys::EveluationKey, poly::Polynomial};
 
 #[derive(Debug, Clone, Copy)]
-pub struct Plaintext<const N: usize> {
-    pub m: Polynomial<i64, N>,
-}
-
-impl<const N: usize> Add for Plaintext<N> {
-    type Output = Self;
-
-    fn add(self, rhs: Self) -> Self {
-        Self { m: self.m + rhs.m }
-    }
-}
-
-impl<const N: usize> Mul for Plaintext<N> {
-    type Output = Self;
-
-    fn mul(self, rhs: Self) -> Self {
-        Self { m: self.m * rhs.m }
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
 pub struct Ciphertext<const N: usize> {
     pub c0: Polynomial<i64, N>,
     pub c1: Polynomial<i64, N>,
