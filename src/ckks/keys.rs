@@ -1,4 +1,11 @@
-use super::{ciphertext::Ciphertext, plaintext::Plaintext, poly::Polynomial, random::rand_array};
+use rand::{Rng, rng};
+
+use super::{ciphertext::Ciphertext, plaintext::Plaintext, poly::Polynomial};
+
+pub fn rand_array<const N: usize>(range: std::ops::Range<i64>) -> [i64; N] {
+    let mut rng = rng();
+    std::array::from_fn(|_| rng.random_range(range.clone()))
+}
 
 pub struct KeyGenerator<const N: usize> {
     // limit: i64,
