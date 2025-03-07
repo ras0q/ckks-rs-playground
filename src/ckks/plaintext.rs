@@ -10,12 +10,11 @@ use super::poly::Polynomial;
 #[derive(Debug, Clone, Copy)]
 pub struct Plaintext<const N: usize> {
     pub m: Polynomial<i64, N>,
-    pub delta: i64,
 }
 
 impl<const N: usize> Plaintext<N> {
     pub fn new(m: Polynomial<i64, N>) -> Self {
-        Self { m, delta: 1 }
+        Self { m }
     }
 
     pub fn encode_from(z: [Complex64; N], delta: i64) -> Self {
@@ -27,14 +26,13 @@ impl<const N: usize> Plaintext<N> {
 
         Self {
             m: Polynomial::new(coeffs, encoded.modulo),
-            delta,
         }
     }
 
-    pub fn decode_to(&self) -> [Complex64; N] {
-        let p: Polynomial<f64, N> = Polynomial::new(self.m.coeffs.map(|x| x as f64), self.m.modulo);
+    pub fn decode(&self, delta: i64) -> [Complex64; N] {
+        let p: Polynomial<f64, N> = Polynomial::new(self.m.coeffs.map(|x| x as f64), i64::MAX);
 
-        project(canonical_embedding(p).map(|x| x / self.delta as f64))
+        project(canonical_embedding(p).map(|x| x / delta as f64))
     }
 }
 
@@ -124,10 +122,7 @@ impl<const N: usize> Add for Plaintext<N> {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self {
-        Self {
-            m: self.m + rhs.m,
-            delta: self.delta,
-        }
+        Self { m: self.m + rhs.m }
     }
 }
 
@@ -135,9 +130,6 @@ impl<const N: usize> Mul for Plaintext<N> {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self {
-        Self {
-            m: self.m * rhs.m,
-            delta: self.delta * rhs.delta,
-        }
+        Self { m: self.m * rhs.m }
     }
 }
