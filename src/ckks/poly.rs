@@ -81,6 +81,28 @@ where
     }
 }
 
+impl<T, const N: usize> Sub for Polynomial<T, N>
+where
+    T: Copy
+        + Default
+        + From<i64>
+        + PartialOrd
+        + Sub<Output = T>
+        + Rem<Output = T>
+        + Add<Output = T>,
+{
+    type Output = Self;
+
+    fn sub(self, rhs: Polynomial<T, N>) -> Self::Output {
+        let mut new_coeffs: [T; N] = [T::default(); N];
+        for (i, (a, b)) in self.coeffs.iter().zip(rhs.coeffs.iter()).enumerate() {
+            new_coeffs[i] = self.cmod(*a - *b);
+        }
+
+        Self::new(new_coeffs, self.modulo)
+    }
+}
+
 impl<T, const N: usize> Mul for Polynomial<T, N>
 where
     T: Copy
