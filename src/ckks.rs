@@ -26,7 +26,6 @@ pub fn encrypt<const N: usize>(
     plaintext: Plaintext<N>,
     public_key: PublicKey<N>,
     evaluation_key: EvaluationKey<N>,
-    scale: i64,
 ) -> Ciphertext<N> {
     let modulo = public_key.b.modulo;
     let v = Polynomial::new_random(-1..2, modulo);
@@ -36,12 +35,7 @@ pub fn encrypt<const N: usize>(
     let c0 = v * public_key.b + plaintext.m + e0;
     let c1 = v * public_key.a + e1;
 
-    Ciphertext {
-        c0,
-        c1,
-        evaluation_key,
-        scale,
-    }
+    Ciphertext::new(c0, c1, evaluation_key, plaintext.scale)
 }
 
 pub fn decrypt<const N: usize>(
@@ -49,5 +43,5 @@ pub fn decrypt<const N: usize>(
     secret_key: SecretKey<N>,
 ) -> Plaintext<N> {
     let m = ciphertext.c0 + ciphertext.c1 * secret_key.s;
-    Plaintext::new(m)
+    Plaintext::new(m, ciphertext.scale)
 }

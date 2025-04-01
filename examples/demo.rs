@@ -18,7 +18,7 @@ fn main() {
     println!("z: {:.3?}", z.map(format_complex));
 
     let plaintext: ckks::plaintext::Plaintext<N> =
-        ckks::plaintext::Plaintext::encode_from(z, DELTA);
+        ckks::plaintext::Plaintext::encode_from(z, DELTA, SCALE);
     println!("plaintext: {:.3?}", plaintext);
     let plaintext_decoded = plaintext.decode(DELTA);
     println!("decoded: {:.3?}", plaintext_decoded.map(format_complex));
@@ -35,7 +35,7 @@ fn main() {
     println!("public key: {:.3?}", public_key);
     println!("secret key: {:.3?}", secret_key);
 
-    let ciphertext = ckks::encrypt(plaintext, public_key, evaluation_key, SCALE);
+    let ciphertext = ckks::encrypt(plaintext, public_key, evaluation_key);
     println!("ciphertext: {:.3?}", ciphertext);
 
     let decrypted = ckks::decrypt(ciphertext, secret_key);
@@ -54,7 +54,7 @@ fn main() {
     );
 
     let plaintext_added = plaintext + plaintext;
-    let ciphertext_added = ckks::encrypt(plaintext_added, public_key, evaluation_key, SCALE);
+    let ciphertext_added = ckks::encrypt(plaintext_added, public_key, evaluation_key);
     let decrypted_added = ckks::decrypt(ciphertext_added, secret_key);
     println!("plaintext_added: {:.3?}", plaintext_added);
     println!("decrypted_added: {:.3?}", decrypted_added);

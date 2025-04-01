@@ -10,14 +10,15 @@ use super::poly::Polynomial;
 #[derive(Debug, Clone, Copy)]
 pub struct Plaintext<const N: usize> {
     pub m: Polynomial<i64, N>,
+    pub scale: i64,
 }
 
 impl<const N: usize> Plaintext<N> {
-    pub fn new(m: Polynomial<i64, N>) -> Self {
-        Self { m }
+    pub fn new(m: Polynomial<i64, N>, scale: i64) -> Self {
+        Self { m, scale }
     }
 
-    pub fn encode_from(z: [Complex64; N / 2], delta: i64) -> Self {
+    pub fn encode_from(z: [Complex64; N / 2], delta: i64, scale: i64) -> Self {
         let encoded = canonical_embedding_inv(project_inv(z));
         // imが0のはず
         assert!(encoded.coeffs.iter().all(|x| x.im.abs() < 1e-6));
@@ -26,6 +27,7 @@ impl<const N: usize> Plaintext<N> {
 
         Self {
             m: Polynomial::new(coeffs, encoded.modulo),
+            scale,
         }
     }
 
@@ -118,7 +120,10 @@ impl<const N: usize> Add for Plaintext<N> {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self {
-        Self { m: self.m + rhs.m }
+        Self {
+            m: self.m + rhs.m,
+            ..self
+        }
     }
 }
 
@@ -126,6 +131,9 @@ impl<const N: usize> Mul for Plaintext<N> {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self {
-        Self { m: self.m * rhs.m }
+        Self {
+            m: self.m * rhs.m / self.scale,
+            ..self
+        }
     }
 }

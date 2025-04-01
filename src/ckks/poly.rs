@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul, Neg, Range, Sub};
+use std::ops::{Add, Div, Mul, Neg, Range, Sub};
 
 use num_traits::Num;
 
@@ -91,18 +91,18 @@ where
     type Output = Self;
 
     fn mul(self, rhs: Polynomial<T, N>) -> Self::Output {
-        let mut product = vec![T::zero(); 2 * N];
+        let mut product = vec![T::zero(); 2 * N - 1];
 
         for (i, a) in self.coeffs.iter().enumerate() {
             for (j, b) in rhs.coeffs.iter().enumerate() {
                 product[i + j] = self.cmod(product[i + j] + self.cmod(*a * *b));
             }
         }
-
+        // 2N-1次式をN-1次式にする
         // X^N + 1で割ってN-1次式にする
         let mut new_coeffs: [T; N] = [T::zero(); N];
-        for i in 0..N {
-            new_coeffs[i] = self.cmod(product[i] + product[i + N]);
+        for i in 0..(N - 1) {
+            new_coeffs[i] = self.cmod(product[i] - product[i + N]);
         }
 
         Self::new(new_coeffs, self.modulo)
@@ -117,6 +117,19 @@ where
 
     fn mul(self, rhs: T) -> Self::Output {
         let new_coeffs: [T; N] = self.coeffs.map(|c| self.cmod(c * rhs));
+
+        Self::new(new_coeffs, self.modulo)
+    }
+}
+
+impl<T, const N: usize> Div<T> for Polynomial<T, N>
+where
+    T: Copy + PartialOrd + Num + From<i64>,
+{
+    type Output = Self;
+
+    fn div(self, rhs: T) -> Self::Output {
+        let new_coeffs: [T; N] = self.coeffs.map(|c| self.cmod(c / rhs));
 
         Self::new(new_coeffs, self.modulo)
     }
