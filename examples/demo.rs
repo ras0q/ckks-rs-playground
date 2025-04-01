@@ -15,56 +15,58 @@ fn main() {
     const DELTA: i64 = 64;
 
     let z: [Complex64; N / 2] = [Complex64::new(413.0, 0.0), Complex64::new(784.3, 55.0)];
-    println!("z: {:?}", z);
+    println!("z: {:.3?}", z.map(format_complex));
 
     let plaintext: ckks::plaintext::Plaintext<N> =
         ckks::plaintext::Plaintext::encode_from(z, DELTA);
-    println!("plaintext: {:?}", plaintext);
+    println!("plaintext: {:.3?}", plaintext);
     let plaintext_decoded = plaintext.decode(DELTA);
-    println!("decoded: {:?}", plaintext_decoded);
+    println!("decoded: {:.3?}", plaintext_decoded.map(format_complex));
     println!(
-        "diff: {:?}\n",
+        "diff: {:.3?}\n",
         z.iter()
             .zip(plaintext_decoded.iter())
             .map(|(a, b)| a - b)
+            .map(format_complex)
             .collect::<Vec<_>>()
     );
 
     let (public_key, secret_key, evaluation_key) = ckks::generate_keys(LIMIT, P, Q0, SCALE);
-    println!("public key: {:?}", public_key);
-    println!("secret key: {:?}", secret_key);
+    println!("public key: {:.3?}", public_key);
+    println!("secret key: {:.3?}", secret_key);
 
     let ciphertext = ckks::encrypt(plaintext, public_key, evaluation_key, SCALE);
-    println!("ciphertext: {:?}", ciphertext);
+    println!("ciphertext: {:.3?}", ciphertext);
 
     let decrypted = ckks::decrypt(ciphertext, secret_key);
-    println!("decrypted: {:?}", decrypted);
-    println!("diff: {:?}\n", decrypted.m + -plaintext.m);
+    println!("decrypted: {:.3?}", decrypted);
+    println!("diff: {:.3?}\n", decrypted.m + -plaintext.m);
 
     let decoded = decrypted.decode(DELTA);
-    println!("decoded: {:?}", decoded);
+    println!("decoded: {:.3?}", decoded.map(format_complex));
     println!(
-        "diff: {:?}\n",
+        "diff: {:.3?}\n",
         z.iter()
             .zip(decoded.iter())
             .map(|(a, b)| a - b)
+            .map(format_complex)
             .collect::<Vec<_>>()
     );
 
     let plaintext_added = plaintext + plaintext;
     let ciphertext_added = ckks::encrypt(plaintext_added, public_key, evaluation_key, SCALE);
     let decrypted_added = ckks::decrypt(ciphertext_added, secret_key);
-    println!("plaintext_added: {:?}", plaintext_added);
-    println!("decrypted_added: {:?}", decrypted_added);
-    println!("diff: {:?}\n", decrypted_added.m + -plaintext_added.m);
+    println!("plaintext_added: {:.3?}", plaintext_added);
+    println!("decrypted_added: {:.3?}", decrypted_added);
+    println!("diff: {:.3?}\n", decrypted_added.m + -plaintext_added.m);
 
     let plaintext_multiplied = plaintext * plaintext;
     let ciphertext_multiplied = ciphertext * ciphertext;
     let decrypted_multiplied = ckks::decrypt(ciphertext_multiplied, secret_key);
-    println!("plaintext_multiplied: {:?}", plaintext_multiplied);
-    println!("decrypted_multiplied: {:?}", decrypted_multiplied);
+    println!("plaintext_multiplied: {:.3?}", plaintext_multiplied);
+    println!("decrypted_multiplied: {:.3?}", decrypted_multiplied);
     println!(
-        "diff: {:?}\n",
+        "diff: {:.3?}\n",
         decrypted_multiplied.m + -plaintext_multiplied.m
     );
 
@@ -90,4 +92,8 @@ fn main() {
     // plaintext_multiplied: Plaintext { m: Polynomial { coeffs: [1332987352, -582380516, 9402685, 764346328], modulo: 9223372036854775807 } }
     // decrypted_multiplied: Plaintext { m: Polynomial { coeffs: [-2442136, -361555, -3945032, -2342236], modulo: 6388711 } }
     // diff: Polynomial { coeffs: [-188889, 646260, -570295, -43244], modulo: 6388711 }
+}
+
+fn format_complex(c: num_complex::Complex64) -> String {
+    format!("{:.3}+{:.3}i", c.re, c.im)
 }
