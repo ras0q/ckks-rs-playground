@@ -17,7 +17,7 @@ impl<const N: usize> Plaintext<N> {
         Self { m }
     }
 
-    pub fn encode_from(z: [Complex64; N], delta: i64) -> Self {
+    pub fn encode_from(z: [Complex64; N / 2], delta: i64) -> Self {
         let encoded = canonical_embedding_inv(project_inv(z));
         // imが0のはず
         assert!(encoded.coeffs.iter().all(|x| x.im.abs() < 1e-6));
@@ -29,7 +29,7 @@ impl<const N: usize> Plaintext<N> {
         }
     }
 
-    pub fn decode(&self, delta: i64) -> [Complex64; N] {
+    pub fn decode(&self, delta: i64) -> [Complex64; N / 2] {
         let p: Polynomial<f64, N> = Polynomial::new(self.m.coeffs.map(|x| x as f64), i64::MAX);
 
         project(canonical_embedding(p).map(|x| x / delta as f64))
@@ -94,28 +94,24 @@ fn canonical_embedding_inv<const N: usize>(
 }
 
 // 前半半分を取り出す
-// 配列の長さは保持し、後半部分は0で埋める
-fn project<const N: usize>(z: [num_complex::Complex64; N]) -> [num_complex::Complex64; N] {
+fn project<const N: usize>(z: [num_complex::Complex64; N]) -> [num_complex::Complex64; N / 2] {
     z.iter()
-        .enumerate()
-        .map(|(i, &x)| if i < N / 2 { x } else { 0.0.into() })
+        .take(N / 2)
+        .cloned()
         .collect::<Vec<_>>()
         .try_into()
         .unwrap()
 }
 
 // 前半部分から元の値に戻す
-fn project_inv<const N: usize>(first: [num_complex::Complex64; N]) -> [num_complex::Complex64; N] {
-    let mut second = first.iter().map(|x| x.conj()).collect::<Vec<_>>();
+// [z_1, z_2, ..., z_N/2] -> [z_1, z_2, ..., z_N/2, conj(z_N/2), conj(z_N/2-1), ..., conj(z_1)]
+fn project_inv<const N: usize>(
+    first: [num_complex::Complex64; N / 2],
+) -> [num_complex::Complex64; N] {
+    let mut second = first.map(|x| x.conj());
     second.reverse();
 
-    first
-        .iter()
-        .zip(second.iter())
-        .map(|(a, b)| a + b)
-        .collect::<Vec<_>>()
-        .try_into()
-        .unwrap()
+    [first, second].concat().try_into().unwrap()
 }
 
 impl<const N: usize> Add for Plaintext<N> {

@@ -1,4 +1,6 @@
 // RustでCKKSを実装する
+#![allow(incomplete_features)]
+#![feature(generic_const_exprs)]
 
 use ckks_rs_playground::ckks;
 use num_complex::Complex64;
@@ -12,15 +14,11 @@ fn main() {
     const SCALE: i64 = 10000;
     const DELTA: i64 = 64;
 
-    let z: [Complex64; N] = [
-        Complex64::new(413.0, 0.0),
-        Complex64::new(784.3, 55.0),
-        Complex64::new(0.0, 0.0),
-        Complex64::new(0.0, 0.0),
-    ];
+    let z: [Complex64; N / 2] = [Complex64::new(413.0, 0.0), Complex64::new(784.3, 55.0)];
     println!("z: {:?}", z);
 
-    let plaintext = ckks::plaintext::Plaintext::encode_from(z, DELTA);
+    let plaintext: ckks::plaintext::Plaintext<N> =
+        ckks::plaintext::Plaintext::encode_from(z, DELTA);
     println!("plaintext: {:?}", plaintext);
     let plaintext_decoded = plaintext.decode(DELTA);
     println!("decoded: {:?}", plaintext_decoded);
