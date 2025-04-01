@@ -1,12 +1,14 @@
 // RustでCKKSを実装する
 
+use ckks_rs_playground::ckks;
 use num_complex::Complex64;
-
-mod ckks;
 
 fn main() {
     const M: usize = 1 << 3;
     const N: usize = M >> 1;
+    const LIMIT: u32 = 3;
+    const P: i64 = 97;
+    const Q0: i64 = 7;
     const SCALE: i64 = 10000;
     const DELTA: i64 = 64;
 
@@ -30,15 +32,14 @@ fn main() {
             .collect::<Vec<_>>()
     );
 
-    let key_generator = ckks::keys::KeyGenerator::new(3, 97, 7, SCALE);
-    let (public_key, secret_key, evaluation_key) = key_generator.generate_keys();
+    let (public_key, secret_key, evaluation_key) = ckks::generate_keys(LIMIT, P, Q0, SCALE);
     println!("public key: {:?}", public_key);
     println!("secret key: {:?}", secret_key);
 
-    let ciphertext = public_key.encrypt(plaintext, evaluation_key, SCALE);
+    let ciphertext = ckks::encrypt(plaintext, public_key, evaluation_key, SCALE);
     println!("ciphertext: {:?}", ciphertext);
 
-    let decrypted = secret_key.decrypt(ciphertext);
+    let decrypted = ckks::decrypt(ciphertext, secret_key);
     println!("decrypted: {:?}", decrypted);
     println!("diff: {:?}\n", decrypted.m + -plaintext.m);
 
@@ -53,15 +54,15 @@ fn main() {
     );
 
     let plaintext_added = plaintext + plaintext;
-    let ciphertext_added = ciphertext + ciphertext;
-    let decrypted_added = secret_key.decrypt(ciphertext_added);
+    let ciphertext_added = ckks::encrypt(plaintext_added, public_key, evaluation_key, SCALE);
+    let decrypted_added = ckks::decrypt(ciphertext_added, secret_key);
     println!("plaintext_added: {:?}", plaintext_added);
     println!("decrypted_added: {:?}", decrypted_added);
     println!("diff: {:?}\n", decrypted_added.m + -plaintext_added.m);
 
     let plaintext_multiplied = plaintext * plaintext;
     let ciphertext_multiplied = ciphertext * ciphertext;
-    let decrypted_multiplied = secret_key.decrypt(ciphertext_multiplied);
+    let decrypted_multiplied = ckks::decrypt(ciphertext_multiplied, secret_key);
     println!("plaintext_multiplied: {:?}", plaintext_multiplied);
     println!("decrypted_multiplied: {:?}", decrypted_multiplied);
     println!(
