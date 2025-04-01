@@ -16,10 +16,10 @@ impl<const N: usize> KeyGenerator<N> {
         }
     }
 
-    pub fn generate_keys(&self) -> (PublicKey<N>, SecretKey<N>, EveluationKey<N>) {
+    pub fn generate_keys(&self) -> (PublicKey<N>, SecretKey<N>, EvaluationKey<N>) {
         let secret_key = SecretKey::generate(self.ql);
         let public_key = PublicKey::generate(secret_key, self.ql);
-        let evaluation_key = EveluationKey::generate(secret_key, self.ql, self.scale);
+        let evaluation_key = EvaluationKey::generate(secret_key, self.ql, self.scale);
 
         (public_key, secret_key, evaluation_key)
     }
@@ -59,7 +59,7 @@ impl<const N: usize> PublicKey<N> {
     pub fn encrypt(
         &self,
         plaintext: Plaintext<N>,
-        evaluation_key: EveluationKey<N>,
+        evaluation_key: EvaluationKey<N>,
         scale: i64,
     ) -> Ciphertext<N> {
         let modulo = self.b.modulo;
@@ -80,12 +80,12 @@ impl<const N: usize> PublicKey<N> {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct EveluationKey<const N: usize> {
+pub struct EvaluationKey<const N: usize> {
     pub b: Polynomial<i64, N>,
     pub a: Polynomial<i64, N>,
 }
 
-impl<const N: usize> EveluationKey<N> {
+impl<const N: usize> EvaluationKey<N> {
     pub fn generate(secret_key: SecretKey<N>, modulo: i64, scale: i64) -> Self {
         let modulo_scaled = modulo * scale;
 

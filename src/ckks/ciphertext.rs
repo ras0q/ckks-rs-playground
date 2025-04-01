@@ -1,12 +1,12 @@
 use std::ops::{Add, Mul};
 
-use super::{keys::EveluationKey, poly::Polynomial};
+use super::{keys::EvaluationKey, poly::Polynomial};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Ciphertext<const N: usize> {
     pub c0: Polynomial<i64, N>,
     pub c1: Polynomial<i64, N>,
-    pub evaluation_key: EveluationKey<N>,
+    pub evaluation_key: EvaluationKey<N>,
     pub scale: i64,
 }
 
