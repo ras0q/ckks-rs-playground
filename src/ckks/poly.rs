@@ -1,7 +1,7 @@
-use crate::ckks::modulo::is_in_range;
+use crate::ckks::modulo::inv;
 
 use super::modulo::cmod;
-use num_integer::{Integer, gcd};
+use num_integer::Integer;
 use num_traits::Num;
 use std::{
     fmt::Debug,
@@ -118,31 +118,11 @@ where
     type Output = Self;
 
     fn div(self, rhs: T) -> Self::Output {
-        if rhs == T::one() {
-            return self;
-        }
-        if rhs + T::one() == T::zero() {
-            return -self;
-        }
+        println!(
+            "Warning: Consider using multiplication with the modular inverse instead of division."
+        );
 
-        if rhs == T::zero() {
-            panic!("Division by zero");
-        }
-        if !is_in_range(rhs, self.modulo) {
-            panic!("Division out of range");
-        }
-        if gcd(rhs, T::from(self.modulo)) != T::one() {
-            panic!("Division not coprime");
-        }
-
-        let modulo = T::from(self.modulo);
-        let rhs_inv = {
-            let mut t = T::one();
-            while (t * rhs) % modulo != T::one() {
-                t = t + T::one();
-            }
-            t
-        };
+        let rhs_inv = inv(rhs, self.modulo);
         println!("rhs_inv: {:?}", rhs_inv);
 
         let new_coeffs: [T; N] = self.coeffs.map(|c| cmod(c * rhs_inv, self.modulo));

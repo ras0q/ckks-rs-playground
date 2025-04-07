@@ -5,17 +5,23 @@ use std::{
 
 use num_complex::Complex64;
 
-use super::poly::Polynomial;
+use super::{modulo::inv, poly::Polynomial};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Plaintext<const N: usize> {
     pub m: Polynomial<i64, N>,
     pub scale: i64,
+    scale_inv: i64,
 }
 
 impl<const N: usize> Plaintext<N> {
     pub fn new(m: Polynomial<i64, N>, scale: i64) -> Self {
-        Self { m, scale }
+        let scale_inv = inv(scale, m.modulo);
+        Self {
+            m,
+            scale,
+            scale_inv,
+        }
     }
 
     pub fn encode_from(z: [Complex64; N / 2], delta: i64, scale: i64) -> Self {
@@ -25,10 +31,7 @@ impl<const N: usize> Plaintext<N> {
 
         let coeffs = encoded.coeffs.map(|x| (x.re * delta as f64).round() as i64);
 
-        Self {
-            m: Polynomial::new(coeffs, encoded.modulo),
-            scale,
-        }
+        Plaintext::new(Polynomial::new(coeffs, encoded.modulo), scale)
     }
 
     pub fn decode(&self, delta: i64) -> [Complex64; N / 2] {
@@ -132,7 +135,7 @@ impl<const N: usize> Mul for Plaintext<N> {
 
     fn mul(self, rhs: Self) -> Self {
         Self {
-            m: self.m * rhs.m / self.scale,
+            m: self.m * rhs.m * self.scale_inv,
             ..self
         }
     }

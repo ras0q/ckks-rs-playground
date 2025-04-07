@@ -25,7 +25,7 @@ fn main() {
     const LIMIT: u32 = 3;
     const P: i64 = 97;
     const Q0: i64 = 7;
-    const SCALE: i64 = 10000;
+    const SCALE: i64 = 11;
     const DELTA: i64 = 64;
 
     let z = measure!("Generate complex vector", {
