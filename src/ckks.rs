@@ -5,6 +5,7 @@ use poly::Polynomial;
 
 pub mod ciphertext;
 pub mod keys;
+pub mod modulo;
 pub mod plaintext;
 pub mod poly;
 

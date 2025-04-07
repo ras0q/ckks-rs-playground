@@ -1,10 +1,12 @@
+use crate::ckks::modulo::is_in_range;
+
+use super::modulo::cmod;
+use num_integer::{Integer, gcd};
+use num_traits::Num;
 use std::{
     fmt::Debug,
     ops::{Add, Div, Mul, Neg, Range, Sub},
 };
-
-use num_integer::{Integer, gcd};
-use num_traits::Num;
 
 #[derive(Debug, Clone, Copy)]
 // Polynomial expression on (ℤ/nℤ)[X]/(X^N + 1)
@@ -27,33 +29,7 @@ impl<T, const N: usize> Polynomial<T, N> {
 
         Self { coeffs, modulo }
     }
-
-    // (-x/2, x/2]の範囲に収める
-    fn cmod(&self, x: T) -> T
-    where
-        T: Copy + PartialOrd + Num + From<i64>,
-    {
-        let modulo = T::from(self.modulo);
-        let t = x % modulo;
-
-        if t < T::from(self.modulo / 2) {
-            t
-        } else {
-            t - modulo
-        }
-    }
-
-    fn is_in_range(&self, x: T) -> bool
-    where
-        T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T>,
-    {
-        let modulo = T::from(self.modulo);
-        let half_modulo = modulo / T::from(2);
-
-        x > -half_modulo && x <= half_modulo
-    }
 }
-
 impl<T, const N: usize> Neg for Polynomial<T, N>
 where
     T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T>,
@@ -61,7 +37,7 @@ where
     type Output = Self;
 
     fn neg(self) -> Self::Output {
-        let new_coeffs: [T; N] = self.coeffs.map(|c| self.cmod(-c));
+        let new_coeffs: [T; N] = self.coeffs.map(|c| cmod(-c, self.modulo));
 
         Self::new(new_coeffs, self.modulo)
     }
@@ -76,7 +52,7 @@ where
     fn add(self, rhs: Polynomial<T, N>) -> Self::Output {
         let mut new_coeffs: [T; N] = [T::zero(); N];
         for (i, (a, b)) in self.coeffs.iter().zip(rhs.coeffs.iter()).enumerate() {
-            new_coeffs[i] = self.cmod(*a + *b);
+            new_coeffs[i] = cmod(*a + *b, self.modulo);
         }
 
         Self::new(new_coeffs, self.modulo)
@@ -92,7 +68,7 @@ where
     fn sub(self, rhs: Polynomial<T, N>) -> Self::Output {
         let mut new_coeffs: [T; N] = [T::zero(); N];
         for (i, (a, b)) in self.coeffs.iter().zip(rhs.coeffs.iter()).enumerate() {
-            new_coeffs[i] = self.cmod(*a - *b);
+            new_coeffs[i] = cmod(*a - *b, self.modulo);
         }
 
         Self::new(new_coeffs, self.modulo)
@@ -110,14 +86,12 @@ where
 
         for (i, a) in self.coeffs.iter().enumerate() {
             for (j, b) in rhs.coeffs.iter().enumerate() {
-                product[i + j] = self.cmod(product[i + j] + self.cmod(*a * *b));
+                product[i + j] = cmod(product[i + j] + cmod(*a * *b, self.modulo), self.modulo);
             }
         }
-        // 2(N-1)次式をN-1次式にする
-        // X^N + 1で割ってN-1次式にする
         let mut new_coeffs: [T; N] = [T::zero(); N];
         for i in 0..(N - 1) {
-            new_coeffs[i] = self.cmod(product[i] - product[i + N]);
+            new_coeffs[i] = cmod(product[i] - product[i + N], self.modulo);
         }
 
         Self::new(new_coeffs, self.modulo)
@@ -131,7 +105,7 @@ where
     type Output = Self;
 
     fn mul(self, rhs: T) -> Self::Output {
-        let new_coeffs: [T; N] = self.coeffs.map(|c| self.cmod(c * rhs));
+        let new_coeffs: [T; N] = self.coeffs.map(|c| cmod(c * rhs, self.modulo));
 
         Self::new(new_coeffs, self.modulo)
     }
@@ -154,7 +128,7 @@ where
         if rhs == T::zero() {
             panic!("Division by zero");
         }
-        if !self.is_in_range(rhs) {
+        if !is_in_range(rhs, self.modulo) {
             panic!("Division out of range");
         }
         if gcd(rhs, T::from(self.modulo)) != T::one() {
@@ -171,7 +145,7 @@ where
         };
         println!("rhs_inv: {:?}", rhs_inv);
 
-        let new_coeffs: [T; N] = self.coeffs.map(|c| self.cmod(c * rhs_inv));
+        let new_coeffs: [T; N] = self.coeffs.map(|c| cmod(c * rhs_inv, self.modulo));
 
         Self::new(new_coeffs, self.modulo)
     }
@@ -179,19 +153,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    #[test]
-    fn cmod() {
-        use super::*;
-
-        let poly = Polynomial::<i64, 1>::new([0], 5);
-        assert_eq!(poly.cmod(0), 0);
-        assert_eq!(poly.cmod(1), 1);
-        assert_eq!(poly.cmod(2), -3);
-        assert_eq!(poly.cmod(3), -2);
-        assert_eq!(poly.cmod(4), -1);
-        assert_eq!(poly.cmod(5), 0);
-    }
-
     #[test]
     fn neg() {
         use super::*;
