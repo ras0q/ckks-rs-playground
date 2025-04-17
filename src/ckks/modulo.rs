@@ -1,33 +1,26 @@
 use num_integer::Integer;
-use num_traits::Num;
-use std::ops::Neg;
 
 // Remainder in range (-modulo/2, modulo/2]
-pub fn cmod<T>(x: T, modulo: i64) -> T
-where
-    T: Copy + Integer + From<i64> + Neg<Output = T>,
-{
+pub fn cmod<T: Integer + Copy>(x: T, modulo: T) -> T {
     if is_in_range(x, modulo) {
         return x;
     }
 
-    println!("MODULO OVER!!: {}", modulo);
+    println!("MODULO OVER!!");
 
-    let modulo = T::from(modulo);
     let t = x % modulo;
 
-    if t < modulo / T::from(2) {
-        t
-    } else {
-        t - modulo
-    }
+    let two = T::one() + T::one();
+    let half_modulo = modulo / two;
+
+    if t < half_modulo { t } else { t - modulo }
 }
 
-pub fn is_in_range<T>(x: T, modulo: i64) -> bool
-where
-    T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T>,
-{
-    let half_modulo = T::from(modulo) / T::from(2);
+pub fn is_in_range<T: Integer + Copy>(x: T, modulo: T) -> bool {
+    let zero = T::zero();
+    let two = T::one() + T::one();
+    let half_modulo = modulo / two;
 
-    x > -half_modulo && x <= half_modulo
+    // Check if x is in the range (-modulo/2, modulo/2]
+    x + half_modulo > zero && x - half_modulo <= zero
 }

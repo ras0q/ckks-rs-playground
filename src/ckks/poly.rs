@@ -1,6 +1,7 @@
 use super::modulo::cmod;
 use num_integer::Integer;
-use num_traits::Num;
+use num_traits::Zero;
+use rand::distr::uniform::SampleUniform;
 use std::{
     fmt::Debug,
     ops::{Add, Div, Mul, Neg, Range, Sub},
@@ -18,20 +19,17 @@ impl<T, const N: usize> Poly<T, N> {
         Self { coeffs }
     }
 
-    pub fn new_random(range: Range<i64>) -> Self
+    pub fn new_random(range: Range<T>) -> Self
     where
-        T: Copy + PartialOrd + Num + From<i64>,
+        T: PartialOrd + Clone + SampleUniform,
     {
-        let coeffs: [T; N] = std::array::from_fn(|_| T::from(rand::random_range(range.clone())));
+        let coeffs: [T; N] = std::array::from_fn(|_| rand::random_range(range.clone()));
 
         Self { coeffs }
     }
 }
 
-impl<T, const N: usize> Neg for Poly<T, N>
-where
-    T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T>,
-{
+impl<T: Neg<Output = T>, const N: usize> Neg for Poly<T, N> {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
@@ -41,10 +39,7 @@ where
     }
 }
 
-impl<T, const N: usize> Add for Poly<T, N>
-where
-    T: Copy + PartialOrd + Num + From<i64>,
-{
+impl<T: Add<Output = T> + Copy, const N: usize> Add for Poly<T, N> {
     type Output = Self;
 
     fn add(self, rhs: Poly<T, N>) -> Self::Output {
@@ -54,10 +49,7 @@ where
     }
 }
 
-impl<T, const N: usize> Sub for Poly<T, N>
-where
-    T: Copy + PartialOrd + Num + From<i64>,
-{
+impl<T: Sub<Output = T> + Copy, const N: usize> Sub for Poly<T, N> {
     type Output = Self;
 
     fn sub(self, rhs: Poly<T, N>) -> Self::Output {
@@ -67,10 +59,7 @@ where
     }
 }
 
-impl<T, const N: usize> Mul for Poly<T, N>
-where
-    T: Copy + PartialOrd + Num + From<i64>,
-{
+impl<T: Mul<Output = T> + Sub<Output = T> + Copy + Zero, const N: usize> Mul for Poly<T, N> {
     type Output = Self;
 
     fn mul(self, rhs: Poly<T, N>) -> Self::Output {
@@ -90,10 +79,7 @@ where
     }
 }
 
-impl<T, const N: usize> Mul<T> for Poly<T, N>
-where
-    T: Copy + PartialOrd + Num + From<i64>,
-{
+impl<T: Mul<Output = T> + Copy, const N: usize> Mul<T> for Poly<T, N> {
     type Output = Self;
 
     fn mul(self, rhs: T) -> Self::Output {
@@ -103,10 +89,7 @@ where
     }
 }
 
-impl<T, const N: usize> Div<T> for Poly<T, N>
-where
-    T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T>,
-{
+impl<T: Div<Output = T> + Copy, const N: usize> Div<T> for Poly<T, N> {
     type Output = Self;
 
     fn div(self, rhs: T) -> Self::Output {
@@ -121,24 +104,24 @@ where
 // P(X) = coeffs[0] + coeffs[1]*X + ... + coeffs[N-1]*X^(N-1) mod q
 pub struct ModPoly<T: Integer, const N: usize> {
     pub coeffs: [T; N],
-    pub modulo: i64,
+    pub modulo: T,
 }
 
-impl<T: Integer, const N: usize> ModPoly<T, N> {
-    pub fn new(coeffs: [T; N], modulo: i64) -> Self {
+impl<T: Integer + Copy, const N: usize> ModPoly<T, N> {
+    pub fn new(coeffs: [T; N], modulo: T) -> Self {
         Self { coeffs, modulo }
     }
 
-    pub fn new_random(range: Range<i64>, modulo: i64) -> Self
+    pub fn new_random(range: Range<T>, modulo: T) -> Self
     where
-        T: Copy + PartialOrd + Num + From<i64>,
+        T: PartialOrd + Clone + SampleUniform,
     {
-        let coeffs: [T; N] = std::array::from_fn(|_| T::from(rand::random_range(range.clone())));
+        let coeffs: [T; N] = std::array::from_fn(|_| rand::random_range(range.clone()));
 
         Self { coeffs, modulo }
     }
 
-    pub fn with_modulo(self, modulo: i64) -> Self {
+    pub fn with_modulo(self, modulo: T) -> Self {
         Self {
             coeffs: self.coeffs,
             modulo,
@@ -146,10 +129,7 @@ impl<T: Integer, const N: usize> ModPoly<T, N> {
     }
 }
 
-impl<T: Integer, const N: usize> Neg for ModPoly<T, N>
-where
-    T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T>,
-{
+impl<T: Integer + Neg<Output = T> + Copy, const N: usize> Neg for ModPoly<T, N> {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
@@ -159,10 +139,7 @@ where
     }
 }
 
-impl<T: Integer, const N: usize> Add for ModPoly<T, N>
-where
-    T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T>,
-{
+impl<T: Integer + Zero + Copy, const N: usize> Add for ModPoly<T, N> {
     type Output = Self;
 
     fn add(self, rhs: ModPoly<T, N>) -> Self::Output {
@@ -175,10 +152,7 @@ where
     }
 }
 
-impl<T: Integer, const N: usize> Sub for ModPoly<T, N>
-where
-    T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T>,
-{
+impl<T: Integer + Copy, const N: usize> Sub for ModPoly<T, N> {
     type Output = Self;
 
     fn sub(self, rhs: ModPoly<T, N>) -> Self::Output {
@@ -191,10 +165,7 @@ where
     }
 }
 
-impl<T: Integer, const N: usize> Mul for ModPoly<T, N>
-where
-    T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T>,
-{
+impl<T: Integer + Copy, const N: usize> Mul for ModPoly<T, N> {
     type Output = Self;
 
     fn mul(self, rhs: ModPoly<T, N>) -> Self::Output {
@@ -216,10 +187,7 @@ where
     }
 }
 
-impl<T: Integer, const N: usize> Mul<T> for ModPoly<T, N>
-where
-    T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T>,
-{
+impl<T: Integer + Copy, const N: usize> Mul<T> for ModPoly<T, N> {
     type Output = Self;
 
     fn mul(self, rhs: T) -> Self::Output {
@@ -229,14 +197,11 @@ where
     }
 }
 
-impl<T, const N: usize> Div<T> for ModPoly<T, N>
-where
-    T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T> + Integer + Debug,
-{
+impl<T: Integer + Copy, const N: usize> Div<T> for ModPoly<T, N> {
     type Output = Self;
 
     fn div(self, rhs: T) -> Self::Output {
-        // TODO: 少数に直す
+        // TODO: 少数に直す？
         let new_coeffs: [T; N] = self.coeffs.map(|c| cmod(c / rhs, self.modulo));
 
         Self::new(new_coeffs, self.modulo)
