@@ -32,10 +32,8 @@ fn main() {
         [Complex64::new(413.0, 0.0), Complex64::new(784.3, 55.0)]
     });
 
-    let plaintext = measure!("Encode plaintext", {
-        ckks::plaintext::Plaintext::<N>::encode_from(z, DELTA, SCALE)
-    });
-    let plaintext_decoded = measure!("Decode plaintext", { plaintext.decode(DELTA) });
+    let plaintext = measure!("Encode plaintext", { ckks::encode::<N>(z, DELTA, SCALE) });
+    let plaintext_decoded = measure!("Decode plaintext", { ckks::decode(plaintext, DELTA) });
     measure!("diff", { diff(&z, &plaintext_decoded) });
 
     let (public_key, secret_key, evaluation_key) = measure!("Generate keys", {
@@ -49,9 +47,9 @@ fn main() {
     let decrypted = measure!("Decrypt ciphertext", {
         ckks::decrypt(ciphertext, secret_key)
     });
-    measure!("diff", { diff(&z, &decrypted.decode(DELTA)) });
+    measure!("diff", { diff(&z, &ckks::decode(decrypted, DELTA)) });
 
-    let decoded = measure!("Decode decrypted", { decrypted.decode(DELTA) });
+    let decoded = measure!("Decode decrypted", { ckks::decode(decrypted, DELTA) });
     measure!("diff", { diff(&z, &decoded) });
 
     let plaintext_added = measure!("Add plaintexts", { plaintext + plaintext });
@@ -63,8 +61,8 @@ fn main() {
     });
     measure!("diff", {
         diff(
-            &plaintext_added.decode(DELTA),
-            &decrypted_added.decode(DELTA),
+            &ckks::decode(plaintext_added, DELTA),
+            &ckks::decode(decrypted_added, DELTA),
         )
     });
 
@@ -75,8 +73,8 @@ fn main() {
     });
     measure!("diff", {
         diff(
-            &plaintext_multiplied.decode(DELTA),
-            &decrypted_multiplied.decode(DELTA),
+            &ckks::decode(plaintext_multiplied, DELTA),
+            &ckks::decode(decrypted_multiplied, DELTA),
         )
     });
 }

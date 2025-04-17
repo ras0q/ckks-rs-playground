@@ -30,6 +30,7 @@ impl<T, const N: usize> Polynomial<T, N> {
         Self { coeffs, modulo }
     }
 }
+
 impl<T, const N: usize> Neg for Polynomial<T, N>
 where
     T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T>,

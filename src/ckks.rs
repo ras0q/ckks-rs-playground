@@ -1,13 +1,32 @@
 use ciphertext::Ciphertext;
+use code::{canonical_embedding, canonical_embedding_inv, project, project_inv};
 use keys::{EvaluationKey, PublicKey, SecretKey};
+use num_complex::Complex64;
 use plaintext::Plaintext;
 use poly::Polynomial;
 
 pub mod ciphertext;
+pub mod code;
 pub mod keys;
 pub mod modulo;
 pub mod plaintext;
 pub mod poly;
+
+pub fn encode<const N: usize>(z: [Complex64; N / 2], delta: i64, scale: i64) -> Plaintext<N> {
+    let encoded = canonical_embedding_inv(project_inv(z));
+    // imが0のはず
+    assert!(encoded.coeffs.iter().all(|x| x.im.abs() < 1e-6));
+
+    let coeffs = encoded.coeffs.map(|x| (x.re * delta as f64).round() as i64);
+
+    Plaintext::new(Polynomial::new(coeffs, encoded.modulo), scale)
+}
+
+pub fn decode<const N: usize>(plaintext: Plaintext<N>, delta: i64) -> [Complex64; N / 2] {
+    let p: Polynomial<f64, N> = Polynomial::new(plaintext.m.coeffs.map(|x| x as f64), i64::MAX);
+
+    project(canonical_embedding(p).map(|x| x / delta as f64))
+}
 
 pub fn generate_keys<const N: usize>(
     limit: u32,
