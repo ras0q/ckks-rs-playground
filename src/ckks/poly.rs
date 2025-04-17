@@ -1,6 +1,5 @@
 use super::modulo::cmod;
 use num_integer::Integer;
-use num_traits::Zero;
 use rand::distr::uniform::SampleUniform;
 use std::{
     fmt::Debug,
@@ -59,18 +58,20 @@ impl<T: Sub<Output = T> + Copy, const N: usize> Sub for Poly<T, N> {
     }
 }
 
-impl<T: Mul<Output = T> + Sub<Output = T> + Copy + Zero, const N: usize> Mul for Poly<T, N> {
+impl<T: Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Copy + Default, const N: usize> Mul
+    for Poly<T, N>
+{
     type Output = Self;
 
     fn mul(self, rhs: Poly<T, N>) -> Self::Output {
-        let mut product = vec![T::zero(); 2 * N - 1];
+        let mut product = vec![T::default(); 2 * N - 1];
 
         for (i, a) in self.coeffs.iter().enumerate() {
             for (j, b) in rhs.coeffs.iter().enumerate() {
                 product[i + j] = product[i + j] + (*a * *b);
             }
         }
-        let mut new_coeffs: [T; N] = [T::zero(); N];
+        let mut new_coeffs: [T; N] = [T::default(); N];
         for i in 0..(N - 1) {
             new_coeffs[i] = product[i] - product[i + N];
         }
@@ -139,11 +140,11 @@ impl<T: Integer + Neg<Output = T> + Copy, const N: usize> Neg for ModPoly<T, N> 
     }
 }
 
-impl<T: Integer + Zero + Copy, const N: usize> Add for ModPoly<T, N> {
+impl<T: Integer + Default + Copy, const N: usize> Add for ModPoly<T, N> {
     type Output = Self;
 
     fn add(self, rhs: ModPoly<T, N>) -> Self::Output {
-        let mut new_coeffs: [T; N] = [T::zero(); N];
+        let mut new_coeffs: [T; N] = [T::default(); N];
         for (i, (a, b)) in self.coeffs.iter().zip(rhs.coeffs.iter()).enumerate() {
             new_coeffs[i] = cmod(*a + *b, self.modulo);
         }
