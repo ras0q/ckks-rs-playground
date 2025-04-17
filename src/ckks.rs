@@ -24,12 +24,12 @@ pub fn encode<const N: usize>(z: [Complex64; N / 2], scale: i64) -> Plaintext<N>
 }
 
 // ℤ[X]/(X^N + 1) -> ℂ^{N/2}
-pub fn decode<const N: usize>(plaintext: Plaintext<N>, delta: i64) -> [Complex64; N / 2] {
+pub fn decode<const N: usize>(plaintext: Plaintext<N>, scale: i64) -> [Complex64; N / 2] {
     let p = Poly::new(
         plaintext
             .m
             .coeffs
-            .map(|x| Complex64::new(x as f64 / delta as f64, 0.0)),
+            .map(|x| Complex64::new(x as f64 / scale as f64, 0.0)),
     );
 
     project(canonical_embedding(p))
