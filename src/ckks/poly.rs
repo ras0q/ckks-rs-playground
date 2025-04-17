@@ -1,4 +1,5 @@
 use super::modulo::cmod;
+use cauchy::Scalar;
 use num_integer::Integer;
 use rand::distr::uniform::SampleUniform;
 use std::{
@@ -25,6 +26,19 @@ impl<T, const N: usize> Poly<T, N> {
         let coeffs: [T; N] = std::array::from_fn(|_| rand::random_range(range.clone()));
 
         Self { coeffs }
+    }
+
+    pub fn evaluate(self, x: T) -> T
+    where
+        T: Scalar,
+    {
+        let mut result = self.coeffs[0];
+
+        for i in 1..N {
+            result += self.coeffs[i] * x.powi(i as i32);
+        }
+
+        result
     }
 }
 

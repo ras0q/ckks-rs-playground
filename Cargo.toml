@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+cauchy = "0.4.0"
 num-complex = "0.4.6"
 num-integer = "0.1.46"
 rand = "0.9.0"
