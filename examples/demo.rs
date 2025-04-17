@@ -2,7 +2,7 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-use ckks_rs_playground::ckks;
+use ckks_rs_playground::ckks::{self, ciphertext};
 use num_complex::Complex64;
 
 macro_rules! measure {
@@ -49,13 +49,8 @@ fn main() {
     });
     measure!("diff", { diff(&z, &ckks::decode(decrypted, DELTA)) });
 
-    let decoded = measure!("Decode decrypted", { ckks::decode(decrypted, DELTA) });
-    measure!("diff", { diff(&z, &decoded) });
-
     let plaintext_added = measure!("Add plaintexts", { plaintext + plaintext });
-    let ciphertext_added = measure!("Encrypt added plaintext", {
-        ckks::encrypt(plaintext_added, public_key, evaluation_key)
-    });
+    let ciphertext_added = measure!("Add ciphertexts", { ciphertext + ciphertext });
     let decrypted_added = measure!("Decrypt added ciphertext", {
         ckks::decrypt(ciphertext_added, secret_key)
     });

@@ -1,5 +1,3 @@
-use crate::ckks::modulo::inv;
-
 use super::modulo::cmod;
 use num_integer::Integer;
 use num_traits::Num;
@@ -9,14 +7,124 @@ use std::{
 };
 
 #[derive(Debug, Clone, Copy)]
+// Polynomial expression on (ℤ/nℤ)[X]/(X^N + 1)
+// P(X) = coeffs[0] + coeffs[1]*X + ... + coeffs[N-1]*X^(N-1)
+pub struct Poly<T, const N: usize> {
+    pub coeffs: [T; N],
+}
+
+impl<T, const N: usize> Poly<T, N> {
+    pub fn new(coeffs: [T; N]) -> Self {
+        Self { coeffs }
+    }
+
+    pub fn new_random(range: Range<i64>) -> Self
+    where
+        T: Copy + PartialOrd + Num + From<i64>,
+    {
+        let coeffs: [T; N] = std::array::from_fn(|_| T::from(rand::random_range(range.clone())));
+
+        Self { coeffs }
+    }
+}
+
+impl<T, const N: usize> Neg for Poly<T, N>
+where
+    T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T>,
+{
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        let new_coeffs: [T; N] = self.coeffs.map(|c| -c);
+
+        Self::new(new_coeffs)
+    }
+}
+
+impl<T, const N: usize> Add for Poly<T, N>
+where
+    T: Copy + PartialOrd + Num + From<i64>,
+{
+    type Output = Self;
+
+    fn add(self, rhs: Poly<T, N>) -> Self::Output {
+        let new_coeffs: [T; N] = self.coeffs.map(|c| c + rhs.coeffs[0]);
+
+        Self::new(new_coeffs)
+    }
+}
+
+impl<T, const N: usize> Sub for Poly<T, N>
+where
+    T: Copy + PartialOrd + Num + From<i64>,
+{
+    type Output = Self;
+
+    fn sub(self, rhs: Poly<T, N>) -> Self::Output {
+        let new_coeffs: [T; N] = self.coeffs.map(|c| c - rhs.coeffs[0]);
+
+        Self::new(new_coeffs)
+    }
+}
+
+impl<T, const N: usize> Mul for Poly<T, N>
+where
+    T: Copy + PartialOrd + Num + From<i64>,
+{
+    type Output = Self;
+
+    fn mul(self, rhs: Poly<T, N>) -> Self::Output {
+        let mut product = vec![T::zero(); 2 * N - 1];
+
+        for (i, a) in self.coeffs.iter().enumerate() {
+            for (j, b) in rhs.coeffs.iter().enumerate() {
+                product[i + j] = product[i + j] + (*a * *b);
+            }
+        }
+        let mut new_coeffs: [T; N] = [T::zero(); N];
+        for i in 0..(N - 1) {
+            new_coeffs[i] = product[i] - product[i + N];
+        }
+
+        Self::new(new_coeffs)
+    }
+}
+
+impl<T, const N: usize> Mul<T> for Poly<T, N>
+where
+    T: Copy + PartialOrd + Num + From<i64>,
+{
+    type Output = Self;
+
+    fn mul(self, rhs: T) -> Self::Output {
+        let new_coeffs: [T; N] = self.coeffs.map(|c| c * rhs);
+
+        Self::new(new_coeffs)
+    }
+}
+
+impl<T, const N: usize> Div<T> for Poly<T, N>
+where
+    T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T>,
+{
+    type Output = Self;
+
+    fn div(self, rhs: T) -> Self::Output {
+        let new_coeffs: [T; N] = self.coeffs.map(|c| c / rhs);
+
+        Self::new(new_coeffs)
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
 // Polynomial expression on (ℤ/nℤ)[X]/(X^N + 1) with modulo
 // P(X) = coeffs[0] + coeffs[1]*X + ... + coeffs[N-1]*X^(N-1)
-pub struct ModPoly<T, const N: usize> {
+pub struct ModPoly<T: Integer, const N: usize> {
     pub coeffs: [T; N],
     pub modulo: i64,
 }
 
-impl<T, const N: usize> ModPoly<T, N> {
+impl<T: Integer, const N: usize> ModPoly<T, N> {
     pub fn new(coeffs: [T; N], modulo: i64) -> Self {
         Self { coeffs, modulo }
     }
@@ -29,9 +137,16 @@ impl<T, const N: usize> ModPoly<T, N> {
 
         Self { coeffs, modulo }
     }
+
+    pub fn with_modulo(self, modulo: i64) -> Self {
+        Self {
+            coeffs: self.coeffs,
+            modulo,
+        }
+    }
 }
 
-impl<T, const N: usize> Neg for ModPoly<T, N>
+impl<T: Integer, const N: usize> Neg for ModPoly<T, N>
 where
     T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T>,
 {
@@ -44,7 +159,7 @@ where
     }
 }
 
-impl<T, const N: usize> Add for ModPoly<T, N>
+impl<T: Integer, const N: usize> Add for ModPoly<T, N>
 where
     T: Copy + PartialOrd + Num + From<i64>,
 {
@@ -60,7 +175,7 @@ where
     }
 }
 
-impl<T, const N: usize> Sub for ModPoly<T, N>
+impl<T: Integer, const N: usize> Sub for ModPoly<T, N>
 where
     T: Copy + PartialOrd + Num + From<i64>,
 {
@@ -76,7 +191,7 @@ where
     }
 }
 
-impl<T, const N: usize> Mul for ModPoly<T, N>
+impl<T: Integer, const N: usize> Mul for ModPoly<T, N>
 where
     T: Copy + PartialOrd + Num + From<i64>,
 {
@@ -99,7 +214,7 @@ where
     }
 }
 
-impl<T, const N: usize> Mul<T> for ModPoly<T, N>
+impl<T: Integer, const N: usize> Mul<T> for ModPoly<T, N>
 where
     T: Copy + PartialOrd + Num + From<i64>,
 {
@@ -119,14 +234,8 @@ where
     type Output = Self;
 
     fn div(self, rhs: T) -> Self::Output {
-        println!(
-            "Warning: Consider using multiplication with the modular inverse instead of division."
-        );
-
-        let rhs_inv = inv(rhs, self.modulo);
-        println!("rhs_inv: {:?}", rhs_inv);
-
-        let new_coeffs: [T; N] = self.coeffs.map(|c| cmod(c * rhs_inv, self.modulo));
+        // TODO: 少数に直す
+        let new_coeffs: [T; N] = self.coeffs.map(|c| cmod(c / rhs, self.modulo));
 
         Self::new(new_coeffs, self.modulo)
     }
@@ -181,15 +290,5 @@ mod tests {
         let scalar = 2;
         let prod_poly = poly * scalar;
         assert_eq!(prod_poly.coeffs, [-3, -1, 1, -2]);
-    }
-
-    #[test]
-    fn div_scalar() {
-        use super::*;
-
-        let poly = ModPoly::<i64, 4>::new([1, 2, 3, 4], 5);
-        let scalar = 2;
-        let div_poly = poly / scalar;
-        assert_eq!(div_poly.coeffs, [-2, 1, -1, -3]);
     }
 }

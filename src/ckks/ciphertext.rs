@@ -8,7 +8,6 @@ pub struct Ciphertext<const N: usize> {
     pub c1: ModPoly<i64, N>,
     pub evaluation_key: EvaluationKey<N>,
     pub scale: i64,
-    scale_inv: i64,
 }
 
 impl<const N: usize> Ciphertext<N> {
@@ -18,13 +17,11 @@ impl<const N: usize> Ciphertext<N> {
         evaluation_key: EvaluationKey<N>,
         scale: i64,
     ) -> Self {
-        let scale_inv = super::modulo::inv(scale, c0.modulo);
         Self {
             c0,
             c1,
             evaluation_key,
             scale,
-            scale_inv,
         }
     }
 }
@@ -45,12 +42,18 @@ impl<const N: usize> Mul for Ciphertext<N> {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self {
+        // TODO: とりあえず
+        assert_eq!(self.scale, rhs.scale);
+
         let c0 = self.c0 * rhs.c0;
         let c1 = self.c0 * rhs.c1 + self.c1 * rhs.c0;
         let c2 = self.c1 * rhs.c1;
 
-        let d0 = c0 + (c2 * self.evaluation_key.b * self.scale_inv);
-        let d1 = c1 + (c2 * self.evaluation_key.a * self.scale_inv);
+        // calculate with evaluation key's modulo
+        let EvaluationKey { b, a } = self.evaluation_key;
+        let new_modulo = b.modulo;
+        let d0 = c0.with_modulo(new_modulo) + (c2.with_modulo(new_modulo) * b / self.scale);
+        let d1 = c1.with_modulo(new_modulo) + (c2.with_modulo(new_modulo) * a / self.scale);
 
         Self {
             c0: d0,

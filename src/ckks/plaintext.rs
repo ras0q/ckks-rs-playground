@@ -1,22 +1,16 @@
 use std::ops::{Add, Mul};
 
-use super::{modulo::inv, poly::ModPoly};
+use super::poly::Poly;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Plaintext<const N: usize> {
-    pub m: ModPoly<i64, N>,
+    pub m: Poly<i64, N>,
     pub scale: i64,
-    scale_inv: i64,
 }
 
 impl<const N: usize> Plaintext<N> {
-    pub fn new(m: ModPoly<i64, N>, scale: i64) -> Self {
-        let scale_inv = inv(scale, m.modulo);
-        Self {
-            m,
-            scale,
-            scale_inv,
-        }
+    pub fn new(m: Poly<i64, N>, scale: i64) -> Self {
+        Self { m, scale }
     }
 }
 
@@ -36,7 +30,7 @@ impl<const N: usize> Mul for Plaintext<N> {
 
     fn mul(self, rhs: Self) -> Self {
         Self {
-            m: self.m * rhs.m * self.scale_inv,
+            m: self.m * rhs.m / self.scale,
             ..self
         }
     }
