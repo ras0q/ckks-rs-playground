@@ -1,16 +1,16 @@
 use std::ops::{Add, Mul};
 
-use super::{modulo::inv, poly::Polynomial};
+use super::{modulo::inv, poly::ModPoly};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Plaintext<const N: usize> {
-    pub m: Polynomial<i64, N>,
+    pub m: ModPoly<i64, N>,
     pub scale: i64,
     scale_inv: i64,
 }
 
 impl<const N: usize> Plaintext<N> {
-    pub fn new(m: Polynomial<i64, N>, scale: i64) -> Self {
+    pub fn new(m: ModPoly<i64, N>, scale: i64) -> Self {
         let scale_inv = inv(scale, m.modulo);
         Self {
             m,

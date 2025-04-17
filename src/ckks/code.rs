@@ -1,10 +1,10 @@
-use super::poly::Polynomial;
+use super::poly::ModPoly;
 use num_complex::Complex64;
 use std::f64::consts::PI;
 
 // σ: ℂ[X] -> ℂ^N
 // σ(P) = [P(ξ), P(ξ^3), ..., P(ξ^{2N-1})]
-pub fn canonical_embedding<T, const N: usize>(p: Polynomial<T, N>) -> [num_complex::Complex64; N]
+pub fn canonical_embedding<T, const N: usize>(p: ModPoly<T, N>) -> [num_complex::Complex64; N]
 where
     T: Copy + Into<f64> + std::fmt::Debug,
 {
@@ -29,7 +29,7 @@ where
 // σ^{-1}: ℂ^N -> ℂ[X]
 pub fn canonical_embedding_inv<const N: usize>(
     z: [num_complex::Complex64; N],
-) -> Polynomial<num_complex::Complex64, N> {
+) -> ModPoly<num_complex::Complex64, N> {
     // ξ = e^(2πi/(2*N))
     let theta = PI / N as f64;
 
@@ -56,7 +56,7 @@ pub fn canonical_embedding_inv<const N: usize>(
         .try_into()
         .unwrap();
 
-    Polynomial::new(coeffs, i64::MAX)
+    ModPoly::new(coeffs, i64::MAX)
 }
 
 // 前半半分を取り出す

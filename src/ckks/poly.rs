@@ -9,14 +9,14 @@ use std::{
 };
 
 #[derive(Debug, Clone, Copy)]
-// Polynomial expression on (ℤ/nℤ)[X]/(X^N + 1)
+// Polynomial expression on (ℤ/nℤ)[X]/(X^N + 1) with modulo
 // P(X) = coeffs[0] + coeffs[1]*X + ... + coeffs[N-1]*X^(N-1)
-pub struct Polynomial<T, const N: usize> {
+pub struct ModPoly<T, const N: usize> {
     pub coeffs: [T; N],
     pub modulo: i64,
 }
 
-impl<T, const N: usize> Polynomial<T, N> {
+impl<T, const N: usize> ModPoly<T, N> {
     pub fn new(coeffs: [T; N], modulo: i64) -> Self {
         Self { coeffs, modulo }
     }
@@ -31,7 +31,7 @@ impl<T, const N: usize> Polynomial<T, N> {
     }
 }
 
-impl<T, const N: usize> Neg for Polynomial<T, N>
+impl<T, const N: usize> Neg for ModPoly<T, N>
 where
     T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T>,
 {
@@ -44,13 +44,13 @@ where
     }
 }
 
-impl<T, const N: usize> Add for Polynomial<T, N>
+impl<T, const N: usize> Add for ModPoly<T, N>
 where
     T: Copy + PartialOrd + Num + From<i64>,
 {
     type Output = Self;
 
-    fn add(self, rhs: Polynomial<T, N>) -> Self::Output {
+    fn add(self, rhs: ModPoly<T, N>) -> Self::Output {
         let mut new_coeffs: [T; N] = [T::zero(); N];
         for (i, (a, b)) in self.coeffs.iter().zip(rhs.coeffs.iter()).enumerate() {
             new_coeffs[i] = cmod(*a + *b, self.modulo);
@@ -60,13 +60,13 @@ where
     }
 }
 
-impl<T, const N: usize> Sub for Polynomial<T, N>
+impl<T, const N: usize> Sub for ModPoly<T, N>
 where
     T: Copy + PartialOrd + Num + From<i64>,
 {
     type Output = Self;
 
-    fn sub(self, rhs: Polynomial<T, N>) -> Self::Output {
+    fn sub(self, rhs: ModPoly<T, N>) -> Self::Output {
         let mut new_coeffs: [T; N] = [T::zero(); N];
         for (i, (a, b)) in self.coeffs.iter().zip(rhs.coeffs.iter()).enumerate() {
             new_coeffs[i] = cmod(*a - *b, self.modulo);
@@ -76,13 +76,13 @@ where
     }
 }
 
-impl<T, const N: usize> Mul for Polynomial<T, N>
+impl<T, const N: usize> Mul for ModPoly<T, N>
 where
     T: Copy + PartialOrd + Num + From<i64>,
 {
     type Output = Self;
 
-    fn mul(self, rhs: Polynomial<T, N>) -> Self::Output {
+    fn mul(self, rhs: ModPoly<T, N>) -> Self::Output {
         let mut product = vec![T::zero(); 2 * N - 1];
 
         for (i, a) in self.coeffs.iter().enumerate() {
@@ -99,7 +99,7 @@ where
     }
 }
 
-impl<T, const N: usize> Mul<T> for Polynomial<T, N>
+impl<T, const N: usize> Mul<T> for ModPoly<T, N>
 where
     T: Copy + PartialOrd + Num + From<i64>,
 {
@@ -112,7 +112,7 @@ where
     }
 }
 
-impl<T, const N: usize> Div<T> for Polynomial<T, N>
+impl<T, const N: usize> Div<T> for ModPoly<T, N>
 where
     T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T> + Integer + Debug,
 {
@@ -138,7 +138,7 @@ mod tests {
     fn neg() {
         use super::*;
 
-        let poly = Polynomial::<i64, 4>::new([1, 2, 3, 4], 5);
+        let poly = ModPoly::<i64, 4>::new([1, 2, 3, 4], 5);
         let neg_poly = -poly;
         assert_eq!(neg_poly.coeffs, [-1, -2, -3, -4]);
     }
@@ -147,8 +147,8 @@ mod tests {
     fn add() {
         use super::*;
 
-        let poly1 = Polynomial::<i64, 4>::new([1, 2, 3, 4], 5);
-        let poly2 = Polynomial::<i64, 4>::new([4, 3, 2, 1], 5);
+        let poly1 = ModPoly::<i64, 4>::new([1, 2, 3, 4], 5);
+        let poly2 = ModPoly::<i64, 4>::new([4, 3, 2, 1], 5);
         let sum_poly = poly1 + poly2;
         assert_eq!(sum_poly.coeffs, [0, 0, 0, 0]);
     }
@@ -157,8 +157,8 @@ mod tests {
     fn sub() {
         use super::*;
 
-        let poly1 = Polynomial::<i64, 4>::new([1, 2, 3, 4], 5);
-        let poly2 = Polynomial::<i64, 4>::new([4, 3, 2, 1], 5);
+        let poly1 = ModPoly::<i64, 4>::new([1, 2, 3, 4], 5);
+        let poly2 = ModPoly::<i64, 4>::new([4, 3, 2, 1], 5);
         let diff_poly = poly1 - poly2;
         assert_eq!(diff_poly.coeffs, [-3, -1, 1, -2]);
     }
@@ -167,8 +167,8 @@ mod tests {
     fn mul() {
         use super::*;
 
-        let poly1 = Polynomial::<i64, 4>::new([1, 2, 3, 4], 5);
-        let poly2 = Polynomial::<i64, 4>::new([4, 3, 2, 1], 5);
+        let poly1 = ModPoly::<i64, 4>::new([1, 2, 3, 4], 5);
+        let poly2 = ModPoly::<i64, 4>::new([4, 3, 2, 1], 5);
         let prod_poly = poly1 * poly2;
         assert_eq!(prod_poly.coeffs, [-1, 0, 1, 0]);
     }
@@ -177,7 +177,7 @@ mod tests {
     fn mul_scalar() {
         use super::*;
 
-        let poly = Polynomial::<i64, 4>::new([1, 2, 3, 4], 5);
+        let poly = ModPoly::<i64, 4>::new([1, 2, 3, 4], 5);
         let scalar = 2;
         let prod_poly = poly * scalar;
         assert_eq!(prod_poly.coeffs, [-3, -1, 1, -2]);
@@ -187,7 +187,7 @@ mod tests {
     fn div_scalar() {
         use super::*;
 
-        let poly = Polynomial::<i64, 4>::new([1, 2, 3, 4], 5);
+        let poly = ModPoly::<i64, 4>::new([1, 2, 3, 4], 5);
         let scalar = 2;
         let div_poly = poly / scalar;
         assert_eq!(div_poly.coeffs, [-2, 1, -1, -3]);

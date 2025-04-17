@@ -1,11 +1,11 @@
 use std::ops::{Add, Mul};
 
-use super::{keys::EvaluationKey, poly::Polynomial};
+use super::{keys::EvaluationKey, poly::ModPoly};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Ciphertext<const N: usize> {
-    pub c0: Polynomial<i64, N>,
-    pub c1: Polynomial<i64, N>,
+    pub c0: ModPoly<i64, N>,
+    pub c1: ModPoly<i64, N>,
     pub evaluation_key: EvaluationKey<N>,
     pub scale: i64,
     scale_inv: i64,
@@ -13,8 +13,8 @@ pub struct Ciphertext<const N: usize> {
 
 impl<const N: usize> Ciphertext<N> {
     pub fn new(
-        c0: Polynomial<i64, N>,
-        c1: Polynomial<i64, N>,
+        c0: ModPoly<i64, N>,
+        c1: ModPoly<i64, N>,
         evaluation_key: EvaluationKey<N>,
         scale: i64,
     ) -> Self {

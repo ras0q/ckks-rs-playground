@@ -3,7 +3,7 @@ use code::{canonical_embedding, canonical_embedding_inv, project, project_inv};
 use keys::{EvaluationKey, PublicKey, SecretKey};
 use num_complex::Complex64;
 use plaintext::Plaintext;
-use poly::Polynomial;
+use poly::ModPoly;
 
 pub mod ciphertext;
 pub mod code;
@@ -19,11 +19,11 @@ pub fn encode<const N: usize>(z: [Complex64; N / 2], delta: i64, scale: i64) -> 
 
     let coeffs = encoded.coeffs.map(|x| (x.re * delta as f64).round() as i64);
 
-    Plaintext::new(Polynomial::new(coeffs, encoded.modulo), scale)
+    Plaintext::new(ModPoly::new(coeffs, encoded.modulo), scale)
 }
 
 pub fn decode<const N: usize>(plaintext: Plaintext<N>, delta: i64) -> [Complex64; N / 2] {
-    let p: Polynomial<f64, N> = Polynomial::new(plaintext.m.coeffs.map(|x| x as f64), i64::MAX);
+    let p: ModPoly<f64, N> = ModPoly::new(plaintext.m.coeffs.map(|x| x as f64), i64::MAX);
 
     project(canonical_embedding(p).map(|x| x / delta as f64))
 }
@@ -48,9 +48,9 @@ pub fn encrypt<const N: usize>(
     evaluation_key: EvaluationKey<N>,
 ) -> Ciphertext<N> {
     let modulo = public_key.b.modulo;
-    let v = Polynomial::new_random(-1..2, modulo);
-    let e0 = Polynomial::new_random(-3..3, modulo);
-    let e1 = Polynomial::new_random(-3..3, modulo);
+    let v = ModPoly::new_random(-1..2, modulo);
+    let e0 = ModPoly::new_random(-3..3, modulo);
+    let e1 = ModPoly::new_random(-3..3, modulo);
 
     let c0 = v * public_key.b + plaintext.m + e0;
     let c1 = v * public_key.a + e1;
