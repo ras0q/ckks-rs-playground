@@ -52,13 +52,14 @@ impl<const N: usize> Mul for Ciphertext<N> {
         // calculate with evaluation key's modulo
         let EvaluationKey { b, a } = self.evaluation_key;
         let new_modulo = b.modulo;
-        let d0 = c0.with_modulo(new_modulo) + (c2.with_modulo(new_modulo) * b / self.scale);
-        let d1 = c1.with_modulo(new_modulo) + (c2.with_modulo(new_modulo) * a / self.scale);
+        let d0 = c0.with_modulo(new_modulo) + (c2.with_modulo(new_modulo) * b);
+        let d1 = c1.with_modulo(new_modulo) + (c2.with_modulo(new_modulo) * a);
 
         Self {
             c0: d0,
             c1: d1,
-            ..self
+            evaluation_key: self.evaluation_key,
+            scale: self.scale * self.scale,
         }
     }
 }

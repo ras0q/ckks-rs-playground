@@ -20,7 +20,7 @@ impl<const N: usize> Add for Plaintext<N> {
     fn add(self, rhs: Self) -> Self {
         Self {
             m: self.m + rhs.m,
-            ..self
+            scale: self.scale,
         }
     }
 }
@@ -30,8 +30,8 @@ impl<const N: usize> Mul for Plaintext<N> {
 
     fn mul(self, rhs: Self) -> Self {
         Self {
-            m: self.m * rhs.m / self.scale,
-            ..self
+            m: self.m * rhs.m,
+            scale: self.scale * rhs.scale,
         }
     }
 }

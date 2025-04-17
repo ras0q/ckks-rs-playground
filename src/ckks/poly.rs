@@ -161,7 +161,7 @@ where
 
 impl<T: Integer, const N: usize> Add for ModPoly<T, N>
 where
-    T: Copy + PartialOrd + Num + From<i64>,
+    T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T>,
 {
     type Output = Self;
 
@@ -177,7 +177,7 @@ where
 
 impl<T: Integer, const N: usize> Sub for ModPoly<T, N>
 where
-    T: Copy + PartialOrd + Num + From<i64>,
+    T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T>,
 {
     type Output = Self;
 
@@ -193,7 +193,7 @@ where
 
 impl<T: Integer, const N: usize> Mul for ModPoly<T, N>
 where
-    T: Copy + PartialOrd + Num + From<i64>,
+    T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T>,
 {
     type Output = Self;
 
@@ -210,13 +210,15 @@ where
             new_coeffs[i] = cmod(product[i] - product[i + N], self.modulo);
         }
 
+        new_coeffs[N - 1] = cmod(product[N - 1], self.modulo);
+
         Self::new(new_coeffs, self.modulo)
     }
 }
 
 impl<T: Integer, const N: usize> Mul<T> for ModPoly<T, N>
 where
-    T: Copy + PartialOrd + Num + From<i64>,
+    T: Copy + PartialOrd + Num + From<i64> + Neg<Output = T>,
 {
     type Output = Self;
 

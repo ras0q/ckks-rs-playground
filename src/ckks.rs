@@ -13,12 +13,12 @@ pub mod plaintext;
 pub mod poly;
 
 // ℂ^{N/2} -> ℤ[X]/(X^N + 1)
-pub fn encode<const N: usize>(z: [Complex64; N / 2], delta: i64, scale: i64) -> Plaintext<N> {
+pub fn encode<const N: usize>(z: [Complex64; N / 2], scale: i64) -> Plaintext<N> {
     let encoded = canonical_embedding_inv(project_inv(z));
     // imが0のはず
     assert!(encoded.coeffs.iter().all(|x| x.im.abs() < 1e-6));
 
-    let coeffs = encoded.coeffs.map(|x| (x.re * delta as f64).round() as i64);
+    let coeffs = encoded.coeffs.map(|x| (x.re * scale as f64).round() as i64);
 
     Plaintext::new(Poly::new(coeffs), scale)
 }
@@ -44,7 +44,7 @@ pub fn generate_keys<const N: usize>(
     let ql = (p.pow(limit)) * q0;
     let secret_key = SecretKey::generate(ql);
     let public_key = PublicKey::generate(secret_key, ql);
-    let evaluation_key = EvaluationKey::generate(secret_key, ql, scale);
+    let evaluation_key = EvaluationKey::generate(secret_key, scale * ql, scale);
 
     (public_key, secret_key, evaluation_key)
 }

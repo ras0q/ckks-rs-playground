@@ -1,11 +1,18 @@
+use num_integer::Integer;
 use num_traits::Num;
 use std::ops::Neg;
 
 // Remainder in range (-modulo/2, modulo/2]
 pub fn cmod<T>(x: T, modulo: i64) -> T
 where
-    T: Copy + PartialOrd + Num + From<i64>,
+    T: Copy + Integer + From<i64> + Neg<Output = T>,
 {
+    if is_in_range(x, modulo) {
+        return x;
+    }
+
+    println!("MODULO OVER!!: {}", modulo);
+
     let modulo = T::from(modulo);
     let t = x % modulo;
 
