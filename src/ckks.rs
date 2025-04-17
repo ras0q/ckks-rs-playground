@@ -12,6 +12,7 @@ pub mod modulo;
 pub mod plaintext;
 pub mod poly;
 
+// ℂ^{N/2} -> ℤ[X]/(X^N + 1)
 pub fn encode<const N: usize>(z: [Complex64; N / 2], delta: i64, scale: i64) -> Plaintext<N> {
     let encoded = canonical_embedding_inv(project_inv(z));
     // imが0のはず
@@ -22,10 +23,16 @@ pub fn encode<const N: usize>(z: [Complex64; N / 2], delta: i64, scale: i64) -> 
     Plaintext::new(Poly::new(coeffs), scale)
 }
 
+// ℤ[X]/(X^N + 1) -> ℂ^{N/2}
 pub fn decode<const N: usize>(plaintext: Plaintext<N>, delta: i64) -> [Complex64; N / 2] {
-    let p: Poly<f64, N> = Poly::new(plaintext.m.coeffs.map(|x| x as f64));
+    let p = Poly::new(
+        plaintext
+            .m
+            .coeffs
+            .map(|x| Complex64::new(x as f64 / delta as f64, 0.0)),
+    );
 
-    project(canonical_embedding(p).map(|x| x / delta as f64))
+    project(canonical_embedding(p))
 }
 
 pub fn generate_keys<const N: usize>(
@@ -42,6 +49,7 @@ pub fn generate_keys<const N: usize>(
     (public_key, secret_key, evaluation_key)
 }
 
+// ℤ[X]/(X^N + 1) -> ((ℤ/qℤ)[X]/(X^N + 1))^2
 pub fn encrypt<const N: usize>(
     plaintext: Plaintext<N>,
     public_key: PublicKey<N>,
@@ -59,6 +67,7 @@ pub fn encrypt<const N: usize>(
     Ciphertext::new(c0, c1, evaluation_key, plaintext.scale)
 }
 
+// ((ℤ/qℤ)[X]/(X^N + 1))^2 -> ℤ[X]/(X^N + 1)
 pub fn decrypt<const N: usize>(
     ciphertext: Ciphertext<N>,
     secret_key: SecretKey<N>,

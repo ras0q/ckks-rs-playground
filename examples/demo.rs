@@ -2,7 +2,7 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-use ckks_rs_playground::ckks::{self, ciphertext};
+use ckks_rs_playground::ckks;
 use num_complex::Complex64;
 
 macro_rules! measure {

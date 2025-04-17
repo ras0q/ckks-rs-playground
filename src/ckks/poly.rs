@@ -7,7 +7,7 @@ use std::{
 };
 
 #[derive(Debug, Clone, Copy)]
-// Polynomial expression on (ℤ/nℤ)[X]/(X^N + 1)
+// Polynomial expression on ℤ[X]/(X^N + 1)
 // P(X) = coeffs[0] + coeffs[1]*X + ... + coeffs[N-1]*X^(N-1)
 pub struct Poly<T, const N: usize> {
     pub coeffs: [T; N],
@@ -117,8 +117,8 @@ where
 }
 
 #[derive(Debug, Clone, Copy)]
-// Polynomial expression on (ℤ/nℤ)[X]/(X^N + 1) with modulo
-// P(X) = coeffs[0] + coeffs[1]*X + ... + coeffs[N-1]*X^(N-1)
+// Polynomial expression on (ℤ/qℤ)[X]/(X^N + 1)
+// P(X) = coeffs[0] + coeffs[1]*X + ... + coeffs[N-1]*X^(N-1) mod q
 pub struct ModPoly<T: Integer, const N: usize> {
     pub coeffs: [T; N],
     pub modulo: i64,

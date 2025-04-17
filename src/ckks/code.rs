@@ -4,10 +4,7 @@ use std::f64::consts::PI;
 
 // σ: ℂ[X] -> ℂ^N
 // σ(P) = [P(ξ), P(ξ^3), ..., P(ξ^{2N-1})]
-pub fn canonical_embedding<T, const N: usize>(p: Poly<T, N>) -> [Complex64; N]
-where
-    T: Copy + Into<f64> + std::fmt::Debug,
-{
+pub fn canonical_embedding<const N: usize>(p: Poly<Complex64, N>) -> [Complex64; N] {
     // ξ = e^(2πi/(2*N))
     let theta = PI / N as f64;
 
@@ -18,7 +15,7 @@ where
             p.coeffs
                 .iter()
                 .enumerate()
-                .map(|(j, &coeff)| coeff.into() * x.powu(j as u32))
+                .map(|(j, &coeff)| coeff * x.powu(j as u32))
                 .sum()
         })
         .collect::<Vec<_>>()
