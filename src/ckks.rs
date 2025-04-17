@@ -24,12 +24,12 @@ pub fn encode<const N: usize>(z: [Complex64; N / 2], scale: i64) -> Plaintext<N>
 }
 
 // ℤ[X]/(X^N + 1) -> ℂ^{N/2}
-pub fn decode<const N: usize>(plaintext: Plaintext<N>, scale: i64) -> [Complex64; N / 2] {
+pub fn decode<const N: usize>(plaintext: Plaintext<N>) -> [Complex64; N / 2] {
     let p = Poly::new(
         plaintext
             .m
             .coeffs
-            .map(|x| Complex64::new(x as f64 / scale as f64, 0.0)),
+            .map(|x| Complex64::new(x as f64 / plaintext.scale as f64, 0.0)),
     );
 
     project(canonical_embedding(p))
@@ -74,5 +74,6 @@ pub fn decrypt<const N: usize>(
 ) -> Plaintext<N> {
     let m = ciphertext.c0 + ciphertext.c1 * secret_key.s;
     let m = Poly::new(m.coeffs);
+
     Plaintext::new(m, ciphertext.scale)
 }

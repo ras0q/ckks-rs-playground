@@ -48,8 +48,8 @@ fn main() {
     let m2 = measure_and_print!("Encode z2 (m2)", { ckks::encode::<N>(z2, DELTA) });
 
     // Decode (検証用)
-    let dcd1 = measure_and_print!("Decode m1 (dcd1)", { ckks::decode(m1, DELTA) });
-    let dcd2 = measure_and_print!("Decode m2 (dcd2)", { ckks::decode(m2, DELTA) });
+    let _dcd1 = measure_and_print!("Decode m1 (dcd1)", { ckks::decode(m1) });
+    let _dcd2 = measure_and_print!("Decode m2 (dcd2)", { ckks::decode(m2) });
 
     // Key Generation
     let (public_key, secret_key, evaluation_key) = measure_and_print!("Generate keys", {
@@ -69,16 +69,16 @@ fn main() {
     let dec_c2 = measure_and_print!("Decrypt c2 (dec c2)", { ckks::decrypt(c2, secret_key) });
 
     // Decode decrypted (検証用)
-    let dcd_dec_c1 = measure_and_print!("Decode dec_c1 (dcd c1)", { ckks::decode(dec_c1, DELTA) });
-    let dcd_dec_c2 = measure_and_print!("Decode dec_c2 (dcd c2)", { ckks::decode(dec_c2, DELTA) });
+    let _dcd_dec_c1 = measure_and_print!("Decode dec_c1 (dcd c1)", { ckks::decode(dec_c1) });
+    let _dcd_dec_c2 = measure_and_print!("Decode dec_c2 (dcd c2)", { ckks::decode(dec_c2) });
 
     // Add
     let c_add = measure_and_print!("Add c1 + c2 (add)", { c1 + c2 });
     let dec_add = measure_and_print!("Decrypt c_add (dec add)", {
         ckks::decrypt(c_add, secret_key)
     });
-    let dcd_add = measure_and_print!("Decode dec_add (dcd add)", { ckks::decode(dec_add, DELTA) });
-    measure_and_print!(
+    let _dcd_add = measure_and_print!("Decode dec_add (dcd add)", { ckks::decode(dec_add) });
+    let _ = measure_and_print!(
         "Original z1 + z2 (org add)",
         z1.iter()
             .zip(z2.iter())
@@ -95,10 +95,10 @@ fn main() {
         ckks::decrypt(c_mul, secret_key)
     });
     // ckks.py では Dcd(Dec(sk, c)) / g_.delta となっている
-    let dcd_mul = measure_and_print!("Decode dec_mul (dcd mul)", {
-        ckks::decode(dec_mul, c_mul.scale) // スケールファクターを考慮
+    let _dcd_mul = measure_and_print!("Decode dec_mul (dcd mul)", {
+        ckks::decode(dec_mul) // スケールファクターを考慮しない
     });
-    measure_and_print!(
+    let _ = measure_and_print!(
         "Original z1 * z2 (org mul)",
         z1.iter()
             .zip(z2.iter())
