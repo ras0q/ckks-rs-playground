@@ -52,21 +52,27 @@ impl<T: Neg<Output = T>, const N: usize> Neg for Poly<T, N> {
     }
 }
 
-impl<T: Add<Output = T> + Copy, const N: usize> Add for Poly<T, N> {
+impl<T: Add<Output = T> + Copy + Default, const N: usize> Add for Poly<T, N> {
     type Output = Self;
 
     fn add(self, rhs: Poly<T, N>) -> Self::Output {
-        let new_coeffs: [T; N] = self.coeffs.map(|c| c + rhs.coeffs[0]);
+        let mut new_coeffs: [T; N] = [T::default(); N];
+        for (i, (a, b)) in self.coeffs.iter().zip(rhs.coeffs.iter()).enumerate() {
+            new_coeffs[i] = *a + *b;
+        }
 
         Self::new(new_coeffs)
     }
 }
 
-impl<T: Sub<Output = T> + Copy, const N: usize> Sub for Poly<T, N> {
+impl<T: Sub<Output = T> + Copy + Default, const N: usize> Sub for Poly<T, N> {
     type Output = Self;
 
     fn sub(self, rhs: Poly<T, N>) -> Self::Output {
-        let new_coeffs: [T; N] = self.coeffs.map(|c| c - rhs.coeffs[0]);
+        let mut new_coeffs: [T; N] = [T::default(); N];
+        for (i, (a, b)) in self.coeffs.iter().zip(rhs.coeffs.iter()).enumerate() {
+            new_coeffs[i] = *a - *b;
+        }
 
         Self::new(new_coeffs)
     }
@@ -89,6 +95,8 @@ impl<T: Mul<Output = T> + Add<Output = T> + Sub<Output = T> + Copy + Default, co
         for i in 0..(N - 1) {
             new_coeffs[i] = product[i] - product[i + N];
         }
+        
+        new_coeffs[N - 1] = product[N - 1];
 
         Self::new(new_coeffs)
     }

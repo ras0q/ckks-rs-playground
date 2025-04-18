@@ -30,6 +30,8 @@ impl<const N: usize> Add for Ciphertext<N> {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self {
+        assert_eq!(self.scale, rhs.scale);
+
         Self {
             c0: self.c0 + rhs.c0,
             c1: self.c1 + rhs.c1,
