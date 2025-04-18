@@ -1,21 +1,22 @@
+use super::{keys::EvaluationKey, poly::ModPoly};
+use num_integer::Integer;
+use std::fmt::Debug;
 use std::ops::{Add, Mul};
 
-use super::{keys::EvaluationKey, poly::ModPoly};
-
 #[derive(Debug, Clone, Copy)]
-pub struct Ciphertext<const N: usize> {
-    pub c0: ModPoly<i64, N>,
-    pub c1: ModPoly<i64, N>,
-    pub evaluation_key: EvaluationKey<N>,
-    pub scale: i64,
+pub struct Ciphertext<T: Integer, const N: usize> {
+    pub c0: ModPoly<T, N>,
+    pub c1: ModPoly<T, N>,
+    pub evaluation_key: EvaluationKey<T, N>,
+    pub scale: T,
 }
 
-impl<const N: usize> Ciphertext<N> {
+impl<T: Integer, const N: usize> Ciphertext<T, N> {
     pub fn new(
-        c0: ModPoly<i64, N>,
-        c1: ModPoly<i64, N>,
-        evaluation_key: EvaluationKey<N>,
-        scale: i64,
+        c0: ModPoly<T, N>,
+        c1: ModPoly<T, N>,
+        evaluation_key: EvaluationKey<T, N>,
+        scale: T,
     ) -> Self {
         Self {
             c0,
@@ -26,7 +27,7 @@ impl<const N: usize> Ciphertext<N> {
     }
 }
 
-impl<const N: usize> Add for Ciphertext<N> {
+impl<T: Integer + Default + Copy + Debug, const N: usize> Add for Ciphertext<T, N> {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self {
@@ -40,7 +41,7 @@ impl<const N: usize> Add for Ciphertext<N> {
     }
 }
 
-impl<const N: usize> Mul for Ciphertext<N> {
+impl<T: Integer + Default + Copy + Debug, const N: usize> Mul for Ciphertext<T, N> {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self {

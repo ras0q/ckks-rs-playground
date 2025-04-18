@@ -32,7 +32,7 @@ fn main() {
         [Complex64::new(20.0, 0.0), Complex64::new(30.3, 55.0)]
     });
 
-    let plaintext = measure!("Encode plaintext", { ckks::encode::<N>(z, DELTA) });
+    let plaintext = measure!("Encode plaintext", { ckks::encode::<i64, N>(z, DELTA) });
     let plaintext_decoded = measure!("Decode plaintext", { ckks::decode(plaintext) });
     measure!("diff (noop)", { diff(&z, &plaintext_decoded) });
 
